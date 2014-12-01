@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=1024, user-scalable=no">
+
+  <title>Your deck.js Presentation</title>
+
+  <!-- Required stylesheet -->
+  <link rel="stylesheet" media="screen" href="core/deck.core.css">
+
+  <!-- Extension CSS files go here. Remove or add as needed. -->
+  <link rel="stylesheet" media="screen" href="extensions/goto/deck.goto.css">
+  <link rel="stylesheet" media="screen" href="extensions/menu/deck.menu.css">
+  <link rel="stylesheet" media="screen" href="extensions/navigation/deck.navigation.css">
+  <link rel="stylesheet" media="screen" href="extensions/status/deck.status.css">
+  <link rel="stylesheet" media="screen" href="extensions/scale/deck.scale.css">
+
+  <!-- Style theme. More available in /themes/style/ or create your own. -->
+  <link rel="stylesheet" media="screen" href="themes/style/swiss.css">
+
+  <!-- Transition theme. More available in /themes/transition/ or create your own. -->
+  <link rel="stylesheet" media="screen" href="themes/transition/horizontal-slide.css">
+
+  <!-- Basic black and white print styles -->
+  <link rel="stylesheet" media="print" href="core/print.css">
+
+  <!-- Required Modernizr file -->
+  <script src="modernizr.custom.js"></script>
+</head>
+<body>
+  <div class="deck-container">
+
+    <!-- Begin slides. Just make elements with a class of slide. -->
+
+    <section class="slide">
+      <h1>Play! : présentation rapide</h1>
+      <p>Play! est le framework web asynchrone/non-blocant de l'ombrelle Typesafe</p>
+      <p></p>
+    </section>
+
+      <section class="slide">
+          <h1>Play! : Anatomie d'un contrôleur</h1>
+          <pre><code>
+object MyController {
+
+  def myAction(param1: String) = Action(parse.json).async {
+    request =>
+      // first do something with the request
+
+      // then perhaps do something of interest
+
+      // finally return a Future[Result]
+      Future.successful(Ok("Done"))
+  }
+}
+          </code></pre>
+          <p class="slide">Une action = une fonction dont les paramètres sont les paremètres de query</p>
+          <p class="slide">L'action est construite au moyen d'un <code>ActionBuilder</code> ...</p>
+          <p class="slide">... auquel on passe un <code>BodyParser</code> ...</p>
+          <p class="slide">... et un fonction anonyme <code>Request => Future[Result]</code></p>
+      </section>
+
+      <section class="slide">
+          <h1>Manipuler un body en JSON</h1>
+          <p>On peut valider automatiquement un body JSON et le transformer en une case class</p>
+          <p>Pour cela il faut une instance de <code>Reads</code> pour notre classe dans le scope implicit</p>
+          <p>Le résultat de la validation sera soit</p>
+          <ul>
+              <li>Un <code>JsSuccess</code> contenant une instance de notre classe</li>
+              <li>Un <code>JsError</code> contenant la liste des erreurs de validation détectées</li>
+          </ul>
+
+      </section>
+
+    <section class="slide">
+      <h1>Le problème</h1>
+      <p>On va s'intéresser à un cas d'étude très simple mais qui présente quelques problèmes d'implémentation</p>
+      <ul>
+        <li>Un model StatusChange qui représente un requête de changement de statut</li>
+        <li>Un userService qui nous renvoie un user en fonction de son ID</li>
+        <li>Un socialService qui permet d'updater le statut d'un user</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h1>Les services</h1>
+      <pre><code>
+trait UserService {
+  def findById(userId: String) : Future[Option[User]]
+  // snip ...
+}
+trait SocialService {
+  def updateStatus(credentials: Credentials, statusUpdate: StatusUpdate) : Future[Either[SocialError, StatusUpdate]]
+  // snip ...
+}
+      </code></pre>
+    </section>
+
+    <section class="slide">
+      <h1>Première mouture "Map party"</h1>
+      <pre><code>
+def updateStatus(userId: String) = Action.async(parse.json) {
+  request =&gt;
+    request.body.validate[StatusChange] match {
+      case JsSuccess(statusUpdate) =&gt;
+        <span class="example-current">userService.findById(userId)</span>.map{
+          _.map{
+            user =>
+              <span class="example-next">socialService.updateStatus(user.credentials, statusChange)</span>.map{
+                _.fold(
+                  error =&gt; Forbidden,
+                  success =&gt; NoContent
+                )
+              }
+          }.getOrElse(NotFound)
+      case JsError(error) =&gt; Future.successful(BadRequest(JsError.toFlatJson(error)),
+  }
+}
+      </code></pre>
+      <p>Cette action extrèmement simple pose une série de problèmes</p>
+      <ul>
+        <li>Le traitment des erreurs est loin du code qui génère l'erreur</li>
+        <li>Les appels de service sont noyés dans le boilerplate</li>
+        <li>Le code ne compile pas</li>
+      </ul>
+    </section>
+    <section class="slide">
+      <h1>Première mouture 1/2 "La cage aux folds"</h1>
+      <pre><code>
+def updateStatus(userId: String) = Action.async(parse.json) {
+  request =&gt;
+    request.body.validate[StatusChange].fold(
+      error => Future.successful(BadRequest(JsError.toFlatJson(error)),
+      statusUpdate =&gt;
+        <span class="example-current">userService.findById(userId)</span>.map{
+          mayBeUser =&gt;
+            maybeUser.fold(NotFound)(
+              <span class="example-next">socialService.updateStatus(user.credentials, statusChange)</span>.map{
+                _.fold(
+                  error =&gt; Forbidden,
+                  success =&gt; NoContent
+                )
+              }
+            )
+        }
+}
+      </code></pre>
+      <p>Il reste encore des problèmes</p>
+      <ul>
+        <li>Les appels de service sont (toujours) noyés dans le boilerplate</li>
+        <li>Le code ne compile (toujours) pas</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h1>Ce qu'on aimerait bien</h1>
+      <ul>
+        <li>Une action sans boilerplate</li>
+        <li>Avec les cas d'erreur gérés le plus tôt possible</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h1>C'est quoi le boilerplate ?</h1>
+      <p>Définition en creux :</p>
+      <p>Le rôle d'un controlleur c'est de </p>
+      <ul>
+        <li>Analyser la requête</li>
+        <li>Appeler des services</li>
+        <li>Construire la réponse</li>
+      </ul>
+      <p>Chaque ligne d'une action doit dont correspondre à une (et une seule) de ces activités </p>
+      <p>... on constate qu'on en est assez loin</p>
+    </section>
+
+      <section class="slide">
+          <h1>Ce qui serait bien ...</h1>
+          <p>Ce serait de pouvoir exprimer chaque action avec juste une for-comprehension</p>
+          <pre><code>
+def updateStatus(userId: String) = Action.async(parse.json) {
+  request =>
+    for {
+      statusUpdate <- request.body.parse[StatusUpdate]                // orElse BadRequest
+      user <- userService.find(userId)                                // orElse NotFound
+      _ <- socialService.updateStatus(user.credentials, statusUpdate) // orElse Forbidden
+    } yield NoContent
+}
+          </code></pre>
+          <p>... bon, là ça compile pas, mais c'est normal</p>
+      </section>
+
+      <section class="slide">
+          <h1></h1>
+      </section>
+
+      <section class="slide">
+          <h1>ScalaZ à la rescousse !</h1>
+          <p>Scalaz </p>
+      </section>
+    <!-- End slides. -->
+
+    <!-- Begin extension snippets. Add or remove as needed. -->
+
+    <!-- deck.navigation snippet -->
+    <div aria-role="navigation">
+      <a href="#" class="deck-prev-link" title="Previous">&#8592;</a>
+      <a href="#" class="deck-next-link" title="Next">&#8594;</a>
+    </div>
+
+    <!-- deck.status snippet -->
+    <p class="deck-status" aria-role="status">
+      <span class="deck-status-current"></span>
+      /
+      <span class="deck-status-total"></span>
+    </p>
+
+    <!-- deck.goto snippet -->
+    <form action="." method="get" class="goto-form">
+      <label for="goto-slide">Go to slide:</label>
+      <input type="text" name="slidenum" id="goto-slide" list="goto-datalist">
+      <datalist id="goto-datalist"></datalist>
+      <input type="submit" value="Go">
+    </form>
+
+    <!-- End extension snippets. -->
+  </div>
+
+<!-- Required JS files. -->
+<script src="jquery.min.js"></script>
+<script src="core/deck.core.js"></script>
+
+<!-- Extension JS files. Add or remove as needed. -->
+<script src="extensions/menu/deck.menu.js"></script>
+<script src="extensions/goto/deck.goto.js"></script>
+<script src="extensions/status/deck.status.js"></script>
+<script src="extensions/navigation/deck.navigation.js"></script>
+<script src="extensions/scale/deck.scale.js"></script>
+
+<!-- Initialize the deck. You can put this in an external file if desired. -->
+<script>
+  $(function() {
+    $.deck('.slide');
+  });
+</script>
+</body>
+</html>
