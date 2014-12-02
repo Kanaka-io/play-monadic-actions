@@ -175,6 +175,13 @@ def updateStatus(userId: String) = Action.async(parse.json) {
       <p>... on constate qu'on en est assez loin</p>
     </section>
 
+
+    <section class="slide">
+      <h1>La structure du problème</h1>
+      <img src="???" alt="dessin1">
+      <p>Ce traitement paraît furieusement séquentiel</p>
+    </section>
+
       <section class="slide">
           <h1>Ce qui serait bien ...</h1>
           <p>Ce serait de pouvoir exprimer chaque action avec juste une for-comprehension</p>
@@ -191,13 +198,39 @@ def updateStatus(userId: String) = Action.async(parse.json) {
           <p>... bon, là ça compile pas, mais c'est normal</p>
       </section>
 
+
       <section class="slide">
-          <h1></h1>
+          <img src="???" alt="Monads"/>
       </section>
 
       <section class="slide">
+          <h1>Mandatory I-know-monads moment</h1>
+          <p>Définissons l'idée de monade (dans la joie)</p>
+          <ul>
+              <li class="slide">Les monades forment un monoïde dans la catégorie des endo-foncteurs <span class="slide">LOL</span></li>
+              <li class="slide">Une monade c'est un foncteur muni d'un <code>unit</code> et d'un <code>bind</code></li>
+              <li class="slide">Une monade c'est un foncteur applicatif muni d'un <code>join</code></li>
+              <li class="slide">Une monade c'est un machin qu'on peut mettre dans une for-comprehension</li>
+          </ul>
+      </section>
+
+
+
+      <section class="slide">
           <h1>ScalaZ à la rescousse !</h1>
-          <p>Scalaz </p>
+          <p>Scalaz fournit des implémentations du concept de monad transformer</p>
+          <p>Un monad transformer combine les effets de deux monades dans une nouvelle monade</p>
+          <p>Donc il nous faut "juste" trouver la bonne combinaison</p>
+      </section>
+
+      <section class="slide">
+          <h1>À la recherche de notre monad transformer</h1>
+          <img src="???" alt="Dessin1bis"/>
+          <p>Pour être uniforme il nous faudrait à chaque étage</p>
+          <ul>
+              <li>Une Future</li>
+              <li>Un \/</li>
+          </ul>
       </section>
     <!-- End slides. -->
 
