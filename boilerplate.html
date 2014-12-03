@@ -18,7 +18,7 @@
   <link rel="stylesheet" media="screen" href="extensions/scale/deck.scale.css">
 
   <!-- Style theme. More available in /themes/style/ or create your own. -->
-  <link rel="stylesheet" media="screen" href="themes/style/swiss.css">
+  <link rel="stylesheet" media="screen" href="themes/style/mnml.css">
 
   <!-- Transition theme. More available in /themes/transition/ or create your own. -->
   <link rel="stylesheet" media="screen" href="themes/transition/horizontal-slide.css">
@@ -224,6 +224,16 @@ def updateStatus(userId: String) = Action.async(parse.json) {
       </section>
 
       <section class="slide">
+          <h1><code>\/</code> : un <code>Either</code> sous stéroïdes</h1>
+
+          <p class="slide">Le type <code>Either</code> n'est pas monadique</p>
+
+          <p class="slide">Dans scalaz, on trouve <code>\/</code> qui a une instance de Monad</p>
+
+          <p class="slide">On dit que <code>\/</code> est "right biased" : une for-comprehension sur <code>\/</code> continue tant qu'on a du <code>\/-</code> (l'équivalent de <code>Right</code>)</p>
+      </section>
+
+      <section class="slide">
           <h1>À la recherche de notre monad transformer</h1>
           <img src="???" alt="Dessin1bis"/>
           <p>Pour être uniforme il nous faudrait à chaque étage</p>
@@ -231,6 +241,23 @@ def updateStatus(userId: String) = Action.async(parse.json) {
               <li>Une Future</li>
               <li>Un \/</li>
           </ul>
+          <p>Le type que l'on cherche est donc <code>EitherT[Future, Result, Result]</code></p>
+      </section>
+
+      <section class="slide">
+          <h1>Le bout du tunnel</h1>
+          <pre><code>
+def updateStatus(userId: String) = Action.async(parse.json) {
+  request =>
+    val result = for {
+      statusUpdate <- request.body.parse[StatusUpdate] |> Future.successful |> EitherT.apply
+      user <- userService.find(userId) |> EitherT.apply
+      _ <- socialService.updateStatus(user.credentials, statusUpdate) // orElse Forbidden
+    } yield NoContent
+
+    result.run.merge
+}
+          </code></pre>
       </section>
     <!-- End slides. -->
 
