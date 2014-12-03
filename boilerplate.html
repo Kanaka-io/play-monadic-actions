@@ -250,12 +250,33 @@ def updateStatus(userId: String) = Action.async(parse.json) {
 def updateStatus(userId: String) = Action.async(parse.json) {
   request =>
     val result = for {
-      statusUpdate <- request.body.parse[StatusUpdate] |> Future.successful |> EitherT.apply
-      user <- userService.find(userId) |> EitherT.apply
-      _ <- socialService.updateStatus(user.credentials, statusUpdate) // orElse Forbidden
+      statusUpdate <- request.body.parse[StatusUpdate] |> Future.successful |> EitherT.apply(jsError2Result)
+      user <- userService.find(userId) |> EitherT.apply(NotFound)
+      _ <- socialService.updateStatus(user.credentials, statusUpdate) |> EitherT.apply
     } yield NoContent
 
     result.run.merge
+}
+          </code></pre>
+          <p>Enfin du code qui compile !</p>
+          <p>Mais c'est encore un peu verbeux</p>
+      </section>
+
+      <section class="slide">
+          <h1></h1>
+
+      </section>
+
+      <section class="slide">
+          <h1>Version Finale</h1>
+          <pre><code>
+def updateStatus(userId: String) = Action.async(parse.json) {
+  request =>
+    for {
+      statusUpdate <- request.body.validate[StatusUpdate]                        ?| BadRequest
+      user         <- userService.find(userId)                                   ?| NotFound
+      _            <- socialService.updateStatus(user.credentials, statusUpdate) ?| Forbidden
+    } yield NoContent
 }
           </code></pre>
       </section>
