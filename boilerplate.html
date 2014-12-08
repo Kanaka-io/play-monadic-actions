@@ -45,7 +45,7 @@
           <pre><code>
 object MyController {
 
-  def myAction(param1: String) = Action(parse.json).async {
+  def myAction(param1: String) = Action.async(parse.json) {
     request =>
       // first do something with the request
 
@@ -76,12 +76,15 @@ object MyController {
 
     <section class="slide">
       <h1>Le problème</h1>
-      <p>On va s'intéresser à un cas d'étude très simple mais qui présente quelques problèmes d'implémentation</p>
+      <p>On va s'intéresser à un cas d'étude très simple mais qui présente quelques problèmes d'implémentation.</p>
+      <p class="slide">On veut créer une API REST pour permettre à des utilisateurs de gérer leur activité sur les réseaux sociaux.</p>
+      <p class="slide">On a :</p>
       <ul>
-        <li>Un model StatusChange qui représente un requête de changement de statut</li>
-        <li>Un userService qui nous renvoie un user en fonction de son ID</li>
-        <li>Un socialService qui permet d'updater le statut d'un user</li>
+        <li class="slide">Un userService qui nous renvoie un user en fonction de son ID</li>
+        <li class="slide">Un socialService qui permet d'updater le statut d'un user</li>
+        <li class="slide">Un model StatusChange qui représente un requête de changement de statut</li>
       </ul>
+      <p class="slide">On va écrire une action qui permet à un utilisateur d'updater son statut.</p>
     </section>
 
     <section class="slide">
@@ -96,6 +99,7 @@ trait SocialService {
   // snip ...
 }
       </code></pre>
+        <p>En bons programmeurs, on encode les effets de bord dans le typesystem.</p>
     </section>
 
     <section class="slide">
@@ -183,23 +187,6 @@ def updateStatus(userId: String) = Action.async(parse.json) {
     </section>
 
       <section class="slide">
-          <h1>Ce qui serait bien ...</h1>
-          <p>Ce serait de pouvoir exprimer chaque action avec juste une for-comprehension</p>
-          <pre><code>
-def updateStatus(userId: String) = Action.async(parse.json) {
-  request =>
-    for {
-      statusUpdate <- request.body.parse[StatusUpdate]                // orElse BadRequest
-      user <- userService.find(userId)                                // orElse NotFound
-      _ <- socialService.updateStatus(user.credentials, statusUpdate) // orElse Forbidden
-    } yield NoContent
-}
-          </code></pre>
-          <p>... bon, là ça compile pas, mais c'est normal</p>
-      </section>
-
-
-      <section class="slide">
           <img src="???" alt="Monads"/>
       </section>
 
@@ -215,6 +202,28 @@ def updateStatus(userId: String) = Action.async(parse.json) {
       </section>
 
 
+      <section class="slide">
+          <h1>Ce qui serait bien ...</h1>
+          <p>Ce serait de pouvoir exprimer chaque action avec juste une for-comprehension</p>
+          <pre><code>
+def updateStatus(userId: String) = Action.async(parse.json) {
+  request =>
+    for {
+      maybeUser <- userService.find(userId)
+      user <- maybeUser
+      statusUpdateOrError <- request.body.parse[StatusUpdate]
+      statusUpdate <- statusUpdateOrError
+      _ <- socialService.updateStatus(user.credentials, statusUpdate)
+    } yield NoContent
+}
+          </code></pre>
+          <p class="slide">... bon, là ça compile pas, mais c'est normal</p>
+          <p class="slide">La première ligne du for "fixe" la monade pour toute la for-comprehension</p>
+          <p class="slide">Pour atteindre notre objectif, il nous faut donc un moyen d'emballer nos traitments dans <strong>la même monade</strong></p>
+          <p class="slide">Par ailleurs, on n'a pas de moyen de capturer les cas d'erreur pour renvoyer un résultat pertinent</p>
+      </section>
+
+
 
       <section class="slide">
           <h1>ScalaZ à la rescousse !</h1>
@@ -224,13 +233,18 @@ def updateStatus(userId: String) = Action.async(parse.json) {
       </section>
 
       <section class="slide">
-          <h1><code>\/</code> : un <code>Either</code> sous stéroïdes</h1>
+          <h1>Sidenote : \/</h1>
 
-          <p class="slide">Le type <code>Either</code> n'est pas monadique</p>
+          <p>Le type scala.util.Either n'est pas monadique</p>
 
-          <p class="slide">Dans scalaz, on trouve <code>\/</code> qui a une instance de Monad</p>
+          <p>Pour avoir un Either (ou sum type) monadique, il faut "choisir" un "côté"</p>
 
-          <p class="slide">On dit que <code>\/</code> est "right biased" : une for-comprehension sur <code>\/</code> continue tant qu'on a du <code>\/-</code> (l'équivalent de <code>Right</code>)</p>
+          <p>C'est exactement ce que fait le type \/ de scalaz (on prononce Disjonction)</p>
+
+          <p>\/ a la même forme qu'Either, mais il est "right-biased"</p>
+
+          <p>càd : dans une for-comprehension sur \/ le traitement continue tant que résultat est \/-</p>
+
       </section>
 
       <section class="slide">
@@ -250,20 +264,39 @@ def updateStatus(userId: String) = Action.async(parse.json) {
 def updateStatus(userId: String) = Action.async(parse.json) {
   request =>
     val result = for {
-      statusUpdate <- request.body.parse[StatusUpdate] |> Future.successful |> EitherT.apply(jsError2Result)
-      user <- userService.find(userId) |> EitherT.apply(NotFound)
-      _ <- socialService.updateStatus(user.credentials, statusUpdate) |> EitherT.apply
+      statusUpdate <- EitherT(Future.successful(request.body.validate[StatusUpdate].fold(
+              err => BadRequest(JsError.toFlatJson(err)).left,
+              su => su.right
+            )))
+      user <- EitherT(userService.find(userId).map(u => u \/> NotFound))
+      _ <- EitherT(socialService.updateStatus(user.credentials, statusUpdate).map{
+              fe =>
+                fe.fold(err => Forbidden.left, identity)
+            })
     } yield NoContent
 
     result.run.merge
 }
           </code></pre>
           <p>Enfin du code qui compile !</p>
-          <p>Mais c'est encore un peu verbeux</p>
+          <p>Mais c'est encore un peu verbeux/illisible</p>
+          <p>La bonne nouvelle, c'est qu'on peut généraliser/abstraire la transformation de nos résultats intermédiaires en EitherT</p>
       </section>
 
       <section class="slide">
-          <h1></h1>
+          <h1>Notre mini DSL</h1>
+          <pre><code>
+object ActionDSL {
+  type Step[A] = EitherT[Future, Result, A]
+
+  def fromJsResult[A](onError: JsError => Result)(in: JsResult[A]): Step[A] = EitherT(
+    Future.successful(in.fold(
+      e => onError(e).left,
+      s => s.right
+    )
+  )
+}
+          </code></pre>
 
       </section>
 
