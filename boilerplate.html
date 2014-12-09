@@ -295,18 +295,72 @@ object ActionDSL {
       s => s.right
     )
   )
+
+  def fromFuture[A](onFailure: Throwable => Result)(in: Future[A]): Step[A] = EitherT(
+    in.map(_.right)
+      .recover(\/.left compose onFailure)
+  )
+
+  def fromFOption(onNone: => Result)(in: Future[Option[A]): Step[A] = EitherT(
+    in.map(a => a \/> onNone)
+  )
+
+  def fromFEither[A, B](onLeft: B => Result)(in: Future[B \/ A]): Step[A] = EitherT(
+    in.map(_.leftMap(onLeft))
+  )
+
+
+  def fromJsResult[A](onError: JsError => Result)(in: JsResult[A]): Step[A] = EitherT(
+     Future.successful(in.fold(
+       e => onError(e).left,
+       s => s.right
+     ))
+  )
+
+  def fromBoolean(onFalse: => Result)(in: => Boolean): Step[Boolean] = EitherT(
+    if(in) Future.successful(true.right)
+    else Future.successful(
+  )
 }
           </code></pre>
 
       </section>
 
       <section class="slide">
+          <h1>AcionDSL</h1>
+          <p>Le DSL est extrèmement simple, il se contente de définir comment on transforme chaque type en <code>EitherT[Future, Result, A]</code></p>
+          <pre><code>
+def updateStatus(userId: String) = Action.async(parse.json) {
+  request =>
+    val eitherT = for {
+      statusUpdate <- request.body.validate[StatusUpdate]                        |> ActionDSL.fromJsResult(err => BadRequest(JsError.toFlatJson(err))
+      user         <- userService.findById(userId)                               |> ActionDSL.fromFOption(NotFound)
+      _            <- socialService.updateStatus(user.credentials, statusUpdate) |> ActionDSL.fromFEither(Forbidden)
+    } yield NoContent
+
+    eitherT.run.map(_.toEither.merge)
+}
+          </code></pre>
+          <p class="slide">C'est mieux, mais il reste un tout petit peu de cérémonie</p>
+          <p class="slide">Il faut écrire le même <code>eitherT.run...</code> pour chaque action</p>
+          <p calss="slide">Le choix de la méthode d'<code>ActionDSL</code> pourrait être automatique</p>
+      </section>
+
+      <section class="slide">
+          <h1>MonadicAction</h1>
+          <p></p>
+      </section>
+
+      <section class="slide">
+          <h1>Conversions implicites</h1>
+      </section>
+      <section class="slide">
           <h1>Version Finale</h1>
           <pre><code>
 def updateStatus(userId: String) = Action.async(parse.json) {
   request =>
     for {
-      statusUpdate <- request.body.validate[StatusUpdate]                        ?| BadRequest
+      statusUpdate <- request.body.validate[StatusUpdate]                        ?| (err => BadRequest(JsError.toFlatJson(err))
       user         <- userService.find(userId)                                   ?| NotFound
       _            <- socialService.updateStatus(user.credentials, statusUpdate) ?| Forbidden
     } yield NoContent
