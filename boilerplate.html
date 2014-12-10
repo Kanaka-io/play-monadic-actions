@@ -353,7 +353,28 @@ def updateStatus(userId: String) = Action.async(parse.json) {
 
       <section class="slide">
           <h1>Conversions implicites</h1>
+          <pre><code>
+trait ToStepOps[A, B] {
+  def orFailWith(onFail: B => Result): Step[A]
+  def ?| (onFailure: B => Result): Step[A] = orFailWith(onFailure)
+  def ?| (failureThunk: =>Result): Step[A] = orFailWith(_ => failureThunk)
+}
+
+implicit def fOptionToStepOps[A](futureOption: Future[Option[A]]): ToStepOps[A, Unit] {
+  override def orFailWith(onFailure: Unit => Result) = ActionDSL.fromFOption(onFailure())(futureOption)
+}
+
+implicit def jsResultToStepOps[A](jsResult: JsResult[A]): ToStepOps[A, JsError] {
+  override def orFailWith(onFailure: JsError => Result) = ActionDSL.fromJsResult(onFailure)(jsResult)
+}
+
+// etc ...
+          </code></pre>
+          <p class="slide">Pour chaque type intéressant (<code>JsResult[A]</code>, <code>Future[Option[A]]</code>, etc...) il n'y a qu'une seule transformation pertinente en <code>Step[A]</code></p>
+          <p class="slide">Écrire une transformation impilicite de chacun de nos type en <code>Step</code> est donc sans danger</p>
       </section>
+
+
       <section class="slide">
           <h1>Version Finale</h1>
           <pre><code>
@@ -366,6 +387,26 @@ def updateStatus(userId: String) = Action.async(parse.json) {
     } yield NoContent
 }
           </code></pre>
+          <p class="slide">Pour mémoire, au début, on avait un truc qui ressemblait à ...</p>
+        <pre class="slide"><code>
+def updateStatus(userId: String) = Action.async(parse.json) {
+  request =&gt;
+    request.body.validate[StatusChange] match {
+      case JsSuccess(statusUpdate) =&gt;
+        <span class="example-current">userService.findById(userId)</span>.map{
+          _.map{
+            user =>
+              <span class="example-next">socialService.updateStatus(user.credentials, statusChange)</span>.map{
+                _.fold(
+                  error =&gt; Forbidden,
+                  success =&gt; NoContent
+                )
+              }
+          }.getOrElse(NotFound)
+      case JsError(error) =&gt; Future.successful(BadRequest(JsError.toFlatJson(error)),
+    }
+}
+        </code></pre>
       </section>
     <!-- End slides. -->
 
