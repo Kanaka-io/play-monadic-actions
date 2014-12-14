@@ -51,9 +51,8 @@ h4 {
     font-variant: small-caps;
 }
 .slide pre {
-    font-style: italic;
     background: #eee;
-    padding: 20px;
+    padding: 10px;
     margin-bottom: 20px;
 }
 .slide code {
