@@ -109,7 +109,7 @@ trait SocialService {
     </section>
 
     <section class="slide">
-      <h1>Première mouture "Map party"</h1>
+      <h1>Première mouture "Vanilla Scala"</h1>
       <pre><code class="scala" contenteditable>
 def updateStatus(userId: String) = Action.async(parse.json) {
   request =&gt;
@@ -117,11 +117,11 @@ def updateStatus(userId: String) = Action.async(parse.json) {
 
 }
       </code></pre>
-      <p>Cette action extrèmement simple pose une série de problèmes</p>
+      <p class="slide">Cette action extrèmement simple pose une série de problèmes</p>
       <ul>
-        <li>Le traitment des erreurs est loin du code qui génère l'erreur</li>
-        <li>Les appels de service sont noyés dans le boilerplate</li>
-        <li>Le code ne compile pas</li>
+        <li class="slide">Le traitement des erreurs est loin du code qui génère l'erreur</li>
+        <li class="slide">Les appels de service sont noyés dans le boilerplate</li>
+        <li class="slide">Le code ne compile pas</li>
       </ul>
     </section>
     <section class="slide">
@@ -249,7 +249,7 @@ def updateStatus(userId: String) = Action.async(parse.json) {
               <li>Une Future</li>
               <li>Un \/</li>
           </ul>
-          <p>Le type que l'on cherche est donc <code class="scala">EitherT[Future, Result, Result]</code></p>
+          <p class="slide">Le type que l'on cherche est donc <code class="scala">EitherT[Future, Result, Result]</code></p>
       </section>
 
       <section class="slide">
@@ -259,27 +259,27 @@ def updateStatus(userId: String) = Action.async(parse.json) {
   request =>
     val result = for {
       statusUpdate <- EitherT(Future.successful(request.body.validate[StatusUpdate].fold(
-              err => BadRequest(JsError.toFlatJson(err)).left,
-              su => su.right
-            )))
+                        err => BadRequest(JsError.toFlatJson(err)).left,
+                        su => su.right
+                      )))
       user <- EitherT(userService.find(userId).map(u => u \/> NotFound))
       _ <- EitherT(socialService.updateStatus(user.credentials, statusUpdate).map{
-              fe =>
-                fe.fold(err => Forbidden.left, identity)
-            })
+             fe =>
+               fe.fold(err => Forbidden.left, identity)
+           })
     } yield NoContent
 
     result.run.merge
 }
           </code></pre>
-          <p>Enfin du code qui compile !</p>
-          <p>Mais c'est encore un peu verbeux/illisible</p>
-          <p>La bonne nouvelle, c'est qu'on peut généraliser/abstraire la transformation de nos résultats intermédiaires en EitherT</p>
+          <p class="slide">Enfin du code qui compile !</p>
+          <p class="slide">Mais c'est encore un peu verbeux/illisible</p>
+          <p class="slide">La bonne nouvelle, c'est qu'on peut généraliser/abstraire la transformation de nos résultats intermédiaires en EitherT</p>
       </section>
 
       <section class="slide">
-          <h1>Notre mini DSL</h1>
-          <pre><code class="scala">
+          <h1 style="margin-bottom: 0px;">Notre mini DSL</h1>
+          <pre style="margin-top:0px;"><code class="scala">
 object ActionDSL {
   type Step[A] = EitherT[Future, Result, A]
 
@@ -292,7 +292,7 @@ object ActionDSL {
 
   def fromFuture[A](onFailure: Throwable => Result)(in: Future[A]): Step[A] = EitherT(
     in.map(_.right)
-      .recover(\/.left compose onFailure)
+      .recover{ case NonFatal(e) => onFailure(e).left }
   )
 
   def fromFOption(onNone: => Result)(in: Future[Option[A]): Step[A] = EitherT(
@@ -347,8 +347,9 @@ def updateStatus(userId: String) = Action.async(parse.json) {
 
       <section class="slide">
           <h1>Conversions implicites</h1>
+          <p>Pour rendre la syntaxe plus agréable, on peut définir un nouveau type avec un opérateur qui facilitera la construction de nos <code>Step[A]</code></p>
           <pre><code class="scala">
-trait ToStepOps[A, B] {
+trait StepOps[A, B] {
   def orFailWith(onFail: B => Result): Step[A]
   def ?| (onFailure: B => Result): Step[A] = orFailWith(onFailure)
   def ?| (failureThunk: =>Result): Step[A] = orFailWith(_ => failureThunk)
@@ -370,7 +371,7 @@ implicit def jsResultToStepOps[A](jsResult: JsResult[A]): ToStepOps[A, JsError] 
 
 
       <section class="slide">
-          <h1>Version Finale</h1>
+          <h1 style="margin-bottom: 30px;">Version Finale</h1>
           <pre><code class="scala">
 def updateStatus(userId: String) = Action.async(parse.json) {
   request =>
@@ -401,6 +402,10 @@ def updateStatus(userId: String) = Action.async(parse.json) {
     }
 }
         </code></pre>
+      </section>
+
+      <section class="slide">
+          <h1></h1>
       </section>
     <!-- End slides. -->
 
