@@ -23,12 +23,28 @@
 p {
     margin: 40px;
 }
+
+.title {
+    border: none;
+    text-align:center;
+    text-decoration: underline ;
+    text-decoration-skip: box-decoration;
+    margin-top: 300px;
+    width: auto;
+}
+
+.me {
+    font-size: 1.7em;
+    margin-left: 880px;
+    text-align: right;
+}
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
+    padding-left: 5px;
     font-weight: normal;
     line-height: 1;
 }
@@ -37,6 +53,8 @@ h1 {
     font-weight: bold;
     border-bottom: 5px #000 solid;
     margin: 0 0 70px 0;
+    padding-top: 10px;
+    padding-left: 10px;
 }
 h2 {
     margin: 35px 0 25px 0;
@@ -44,9 +62,13 @@ h2 {
     font-style: italic;
 }
 h3 {
-    margin: 30 0 20px 0;
+    margin: 30px 0 20px 0;
     font-size: 1.3em;
 }
+ul {
+    margin-left: 50px;
+}
+
 ul > li > h3 {
     margin: 0 0 20px 0;
 }
@@ -139,4 +161,8 @@ h4 {
 .deck-menu .deck-current,
 .no-touch .deck-container.deck-menu .slide:hover {
     background: #ddf;
+}
+
+code {
+    font-size: 1.1em;
 }

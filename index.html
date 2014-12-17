@@ -39,11 +39,16 @@
   <div class="deck-container">
 
     <!-- Begin slides. Just make elements with a class of slide. -->
+      <section class="slide">
+          <h1 class="title">Allégez vos contrôleurs Play!</h1>
+          <a class="me">@ValentinKasas</a>
+      </section>
 
     <section class="slide">
       <h1>Play! : présentation rapide</h1>
       <p>Play! est le framework web asynchrone/non-blocant de l'ombrelle Typesafe</p>
-      <p></p>
+      <p>Il est structuré autour du pattern MVC</p>
+      <p>Il s'intègre parfaitement avec Akka</p>
     </section>
 
       <section class="slide">
@@ -71,11 +76,11 @@ object MyController {
       <section class="slide">
           <h1>Manipuler un body en JSON</h1>
           <p>On peut valider automatiquement un body JSON et le transformer en une case class</p>
-          <p>Pour cela il faut une instance de <code class="scala">Reads</code> pour notre classe dans le scope implicit</p>
-          <p>Le résultat de la validation sera soit</p>
+          <p class="slide">Pour cela il faut une instance de <code class="scala">Reads</code> pour notre classe dans le scope implicit</p>
+          <p class="slide">Le résultat de la validation sera soit</p>
           <ul>
-              <li>Un <code class="scala">JsSuccess</code> contenant une instance de notre classe</li>
-              <li>Un <code class="scala">JsError</code> contenant la liste des erreurs de validation détectées</li>
+              <li class="slide">Un <code class="scala">JsSuccess</code> contenant une instance de notre classe</li>
+              <li class="slide">Un <code class="scala">JsError</code> contenant la liste des erreurs de validation détectées</li>
           </ul>
 
       </section>
@@ -117,7 +122,7 @@ def updateStatus(userId: String) = Action.async(parse.json) {
 
 }
       </code></pre>
-      <p class="slide">Cette action extrèmement simple pose une série de problèmes</p>
+      <p class="slide">Cette action pourtant très simple pose une série de problèmes</p>
       <ul>
         <li class="slide">Le traitement des erreurs est loin du code qui génère l'erreur</li>
         <li class="slide">Les appels de service sont noyés dans le boilerplate</li>
@@ -125,17 +130,17 @@ def updateStatus(userId: String) = Action.async(parse.json) {
       </ul>
     </section>
     <section class="slide">
-      <h1>Première mouture 1/2 "La cage aux folds"</h1>
+      <h1>Deuxième essai : "La cage aux folds"</h1>
       <pre><code class="scala">
 def updateStatus(userId: String) = Action.async(parse.json) {
   request =&gt;
     request.body.validate[StatusChange].fold(
       error => Future.successful(BadRequest(JsError.toFlatJson(error)),
       statusUpdate =&gt;
-        <span class="example-current">userService.findById(userId)</span>.map{
+        userService.findById(userId).map{
           mayBeUser =&gt;
             maybeUser.fold(NotFound)(
-              <span class="example-next">socialService.updateStatus(user.credentials, statusChange)</span>.map{
+              socialService.updateStatus(user.credentials, statusChange).map{
                 _.fold(
                   error =&gt; Forbidden,
                   success =&gt; NoContent
@@ -145,10 +150,10 @@ def updateStatus(userId: String) = Action.async(parse.json) {
         }
 }
       </code></pre>
-      <p>Il reste encore des problèmes</p>
+      <p class="slide">Il reste encore des problèmes</p>
       <ul>
-        <li>Les appels de service sont (toujours) noyés dans le boilerplate</li>
-        <li>Le code ne compile (toujours) pas</li>
+        <li class="slide">Les appels de service sont (toujours) noyés dans le boilerplate</li>
+        <li class="slide">Le code ne compile (toujours) pas</li>
       </ul>
     </section>
 
@@ -175,13 +180,13 @@ def updateStatus(userId: String) = Action.async(parse.json) {
 
 
     <section class="slide">
-      <h1>La structure du problème</h1>
-      <img src="???" alt="dessin1">
-      <p>Ce traitement paraît furieusement séquentiel</p>
+      <h1>La structure de notre action</h1>
+      <img src="images/schema_1.jpg" height="600" style="float:right; margin-right: 50px">
+      <p class="slide" style="width:50%;">Ce traitement paraît furieusement séquentiel</p>
     </section>
 
       <section class="slide">
-          <img style="display:block;margin: 0 auto;" height="700" src="images/monads.jpg" alt="Monads"/>
+          <img style="display:block;margin: 0 auto;" height="768" src="images/monads.jpg" alt="Monads"/>
       </section>
 
       <section class="slide">
@@ -243,13 +248,13 @@ def updateStatus(userId: String) = Action.async(parse.json) {
 
       <section class="slide">
           <h1>À la recherche de notre monad transformer</h1>
-          <img src="???" alt="Dessin1bis"/>
+          <img style="float:right; margin-right: 50px;" src="images/schema_2.jpg" height="400"/>
           <p>Pour être uniforme il nous faudrait à chaque étage</p>
           <ul>
               <li>Une Future</li>
               <li>Un \/</li>
           </ul>
-          <p class="slide">Le type que l'on cherche est donc <code class="scala">EitherT[Future, Result, Result]</code></p>
+          <p class="slide" style="width:50%;">Le type que l'on cherche est donc <code class="scala">EitherT[Future, Result, Result]</code></p>
       </section>
 
       <section class="slide">
@@ -310,11 +315,7 @@ object ActionDSL {
        s => s.right
      ))
   )
-
-  def fromBoolean(onFalse: => Result)(in: => Boolean): Step[Boolean] = EitherT(
-    if(in) Future.successful(true.right)
-    else Future.successful(
-  )
+  // etc ...
 }
           </code></pre>
 
@@ -342,7 +343,30 @@ def updateStatus(userId: String) = Action.async(parse.json) {
 
       <section class="slide">
           <h1>MonadicAction</h1>
-          <p></p>
+          <p>On va devoir répeter le <code>eitherT.run</code> dans chaque action ... c'est du boilerplate !</p>
+          <p>Pour l'éliminer, on a deux solutions</p>
+          <pre><code class="scala">
+// conversion implicite
+
+implicit def stepToResult(step: Step[Result]):Future[Result] = step.run.map(_.merge)
+
+// ActionBuilder
+
+import scala.language.higherKinds
+
+case class MonadicAction[R[_]](inner: ActionFunction[Request, R]) extends ControllerUtils {
+
+  def apply[A](bodyParser: BodyParser[A])(block: R[A] => HttpResult[Result]) = new Action[A] {
+    override def parser = bodyParser
+
+    override def apply(request: Request[A]) = inner.invokeBlock(request, (req: R[A]) => constructPlayResult(block(req)))
+  }
+
+  def apply(block: R[AnyContent] => HttpResult[Result]): Action[AnyContent] = apply(BodyParsers.parse.anyContent)(block)
+
+}
+
+          </code></pre>
       </section>
 
       <section class="slide">
