@@ -3,8 +3,8 @@ Play monadic actions
 
 This little play module provides some syntactic sugar that allows boilerplate-free Actions using for-comprehensions.
 
-The [slides](https://kanaka-io.github.io/play-monadic-actions/index.html) (in french) explain in detail the problem
- tht this project addresses, and how to use the solution in your own projects.
+The [slides](https://kanaka-io.github.io/play-monadic-actions/index.html) (in french) explain in greater detail the problem
+ that this project addresses, and how to use the solution in your own projects.
 
 ## Installation
 
@@ -19,9 +19,10 @@ lazy val myProject = RootProject(file(".")).dependsOn(playMonadicActions)
 
 ## Usage
 
-The DSL adds the ?| operator to most of the types one could normally encounter in an action
-(such as Future[A], Future[Option[A]], Either[B,A], etc...). Given a function (or thunk) that transforms the error case in Result,
-the ?| operator will return an EitherT[Future, Result, A] enabling the writing of the whole action as a single for-comprehension.
+The DSL adds the `?|` operator to most of the types one could normally encounter in an action
+(such as `Future[A]`, `Future[Option[A]]`, `Either[B,A]`, etc...). Given a function (or thunk) that transforms the error case in Result,
+the `?|` operator will return an `EitherT[Future, Result, A]` (which is aliased to `Step[A]` for convenience)
+enabling the writing of the whole action as a single for-comprehension.
 
 ~~~scala
 object TestController extends Controller {
@@ -46,7 +47,7 @@ object TestController extends Controller {
 
 If you use the implicit conversions from ActionDSL.Implicits and the ?| operator on methods returning future,
 you'll have to make sure that you have an implicit ExecutionContext available in scope. Otherwise, implicit conversion
-from Future to Step[A] will silently fail, and you'll probably end up with cryptic compilation errors.
+from `Future` to `Step` will silently fail, and you'll probably end up with cryptic compilation errors.
 
 ## Credits
 
