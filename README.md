@@ -20,15 +20,15 @@ lazy val myProject = RootProject(file(".")).dependsOn(playMonadicActions)
 ## Usage
 
 The DSL adds the `?|` operator to most of the types one could normally encounter in an action
-(such as `Future[A]`, `Future[Option[A]]`, `Either[B,A]`, etc...). Given a function (or thunk) that transforms the error case in Result,
+(such as `Future[A]`, `Future[Option[A]]`, `Either[B,A]`, etc...). Given a function (or thunk) that transforms the error case in `Result`,
 the `?|` operator will return an `EitherT[Future, Result, A]` (which is aliased to `Step[A]` for convenience)
 enabling the writing of the whole action as a single for-comprehension.
 
 ~~~scala
-object TestController extends Controller {
+package controllers
 
-  import ActionDSL.Implicits._
-  import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import ActionDSL.MonadicAction
+object TestController extends Controller with MonadicActions {
 
   implicit val StatusUpdateFormat = Json.format[StatusUpdate]
 
@@ -42,12 +42,6 @@ object TestController extends Controller {
   }
 }
 ~~~
-
-## Pitfalls
-
-If you use the implicit conversions from ActionDSL.Implicits and the ?| operator on methods returning future,
-you'll have to make sure that you have an implicit ExecutionContext available in scope. Otherwise, implicit conversion
-from `Future` to `Step` will silently fail, and you'll probably end up with cryptic compilation errors.
 
 ## Credits
 
