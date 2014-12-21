@@ -1,6 +1,8 @@
 Play monadic actions
 ====================
 
+[![Build Status](https://travis-ci.org/Kanaka-io/play-monadic-actions.svg?branch=master)](https://travis-ci.org/Kanaka-io/play-monadic-actions)
+
 This little play module provides some syntactic sugar that allows boilerplate-free Actions using for-comprehensions.
 
 The [slides](https://kanaka-io.github.io/play-monadic-actions/index.html) (in french) explain in greater detail the problem
