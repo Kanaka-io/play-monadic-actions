@@ -10,12 +10,10 @@ The [slides](https://kanaka-io.github.io/play-monadic-actions/index.html) (in fr
 
 ## Installation
 
-The project is not released as a library yet, to use it in your play project you'll need to add something like the following in your sbt configuration :
+Using sbt :
 
 ~~~scala
-lazy val playMonadicActions = RootProject(uri("https://github.com/Kanaka-io/play-monadic-actions.git"))
-
-lazy val myProject = RootProject(file(".")).dependsOn(playMonadicActions)
+libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "1.0"
 ~~~
 
 
