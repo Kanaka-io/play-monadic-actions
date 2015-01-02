@@ -19,14 +19,14 @@ package controllers
 import play.api.data.Form
 import play.api.data.validation.ValidationError
 import play.api.libs.json.{JsPath, JsResult}
-import play.api.mvc.Result
+import play.api.mvc.{Results, Result}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 import scalaz.syntax.id._
 import scalaz.syntax.std.option._
-import scalaz.{Monad, Functor, EitherT, \/}
+import scalaz._
 
 /**
  * @author Valentin Kasas
@@ -77,7 +77,6 @@ package object ActionDSL {
   }
 
 
-
   trait MonadicActions {
 
     import scala.language.implicitConversions
@@ -92,6 +91,14 @@ package object ActionDSL {
       override def point[A](a: => A) = Future(a)(executionContext)
 
       override def bind[A, B](fa: Future[A])(f: (A) => Future[B]) = fa.flatMap(f)(executionContext)
+    }
+
+    // This instance is needed to enable filtering/pattern-matching in for-comprehensions
+    // It is acceptable for pattern-matching
+    implicit val resultIsAMonoid = new Monoid[Result] {
+      override def zero = Results.InternalServerError
+
+      override def append(f1: Result, f2: => Result) = throw new IllegalStateException("should not happen")
     }
 
     implicit def futureToStepOps[A](future: Future[A]): StepOps[A, Throwable] = new StepOps[A, Throwable] {
