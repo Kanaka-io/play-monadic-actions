@@ -73,7 +73,7 @@ def changePassword() = Action.async {
   implicit request =>
     for {
       (password, confirmation) <- passwordForm.bindFromRequest ?| (formWithErrors => BadRequest(formWithErrors.errorsAsJson)
-      _ <- (password != confirmation) ?| BadRequest("the two passwords must match")
+      _ <- (password == confirmation) ?| BadRequest("the two passwords must match")
     } yield Ok
 }
 ~~~
