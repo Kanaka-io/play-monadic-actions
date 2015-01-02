@@ -12,8 +12,16 @@ The [slides](https://kanaka-io.github.io/play-monadic-actions/index.html) (in fr
 
 Using sbt :
 
+To use the 1.0 release
 ~~~scala
 libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "1.0"
+~~~
+
+To use the 1.0.1-SNAPSHOT snapshot
+~~~scala
+libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "1.0.1-SNAPSHOT"
+
+resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 ~~~
 
 
@@ -42,6 +50,46 @@ object TestController extends Controller with MonadicActions {
   }
 }
 ~~~
+
+## Caveats
+
+### ExecutionContext
+
+For compatibility reasons, play-monadic-actions depends on scalaz version 7.0.6 that does not provide `Monad` or `Functor` instances for `scala.concurrent.Future`.
+Therefore, those instances have to be provided locally. To be able to use `map` on `Future`s and than provide those instances, an `ExecutionContext` must be selected.
+In order to keep the DSL simple and yet allow one to use a specific `ExecutionContext`, `Monad[Future]` and `Functor[Future]` instances are defined as `val`s inside
+trait `MonadicActions` (meaning that each controller extending `MonadicActions` has its own version of theses instances). These instances explicitly use the value of
+the the local val `executionContext` that defaults to `play.api.libs.concurrent.Execution.defaultContext`. One can thus override this field on a controller to use another
+execution context.
+
+### Filtering / Pattern matching in for-comprehensions
+
+Similarly, a `Monoid[Result]` instance is required to enable filtering/pattern-matching in for-comprehensions on `EitherT[Future, Result, X]`. The problem is that
+`Result` doesn't really have a monoidal structure. The provided instance will systematically yield an `InternalServerError` when a filter predicate does not hold
+or if an extracted value does not match the specified pattern. Therefore, this feature should be used with caution. For example the following :
+
+~~~scala
+def changePassword() = Action.async {
+  implicit request =>
+    for {
+      (password, confirmation) <- passwordForm.bindFromRequest ?| (formWithErrors => BadRequest(formWithErrors.errorsAsJson)
+      _ <- (password != confirmation) ?| BadRequest("the two passwords must match")
+    } yield Ok
+}
+~~~
+
+is preferable to the more straightforward :
+
+~~~scala
+def changePassword() = Action.async {
+  implicit request =>
+    for {
+      (password, confirmation) <- passwordForm.bindFromRequest ?| (formWithErrors => BadRequest(formWithErrors.errorsAsJson) if password == confirmation
+    } yield Ok
+}
+~~~
+
+which would yield an `InternalServerError` if the two passwords don't match.
 
 ## Credits
 
