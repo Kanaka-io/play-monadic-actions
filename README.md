@@ -12,18 +12,10 @@ The [slides](https://kanaka-io.github.io/play-monadic-actions/index.html) (in fr
 
 Using sbt :
 
-To use the 1.0 release
+Current version is 1.0.1
 ~~~scala
-libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "1.0"
+libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "1.0.1"
 ~~~
-
-To use the 1.0.1-SNAPSHOT snapshot
-~~~scala
-libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "1.0.1-SNAPSHOT"
-
-resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-~~~
-
 
 ## Usage
 
