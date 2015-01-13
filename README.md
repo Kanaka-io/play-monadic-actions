@@ -27,7 +27,7 @@ enabling the writing of the whole action as a single for-comprehension.
 ~~~scala
 package controllers
 
-import ActionDSL.MonadicAction
+import controllers.ActionDSL.MonadicActions
 object TestController extends Controller with MonadicActions {
 
   implicit val StatusUpdateFormat = Json.format[StatusUpdate]
