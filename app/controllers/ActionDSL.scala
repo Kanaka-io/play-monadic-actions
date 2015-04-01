@@ -138,5 +138,7 @@ package object ActionDSL {
     }
 
     implicit def stepToResult(step: Step[Result]): Future[Result] = step.run.map(_.toEither.merge)(executionContext)
+
+    implicit def stepToEither[A](step: Step[A]): Future[Either[Result, A]] = step.run.map(_.toEither)(executionContext)
   }
 }
