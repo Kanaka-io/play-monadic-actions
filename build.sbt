@@ -1,43 +1,32 @@
+
 name := """play-monadic-actions"""
 
-version := "1.0.1-SNAPSHOT"
+version := "1.0.2"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = project in file(".")
 
 scalaVersion := "2.11.1"
 
 libraryDependencies ++= Seq(
-  "org.scalaz" %% "scalaz-core" % "7.0.6"
+  "org.scalaz" %% "scalaz-core" % "7.1.3",
+  "com.typesafe.play" %% "play" % "2.4.2" % "provided"
 )
 
 organization := "io.kanaka"
 
 description := "Mini DSL to allow the writing of Play! actions using for-comprehensions"
 
-publishMavenStyle := true
+licenses +=("Apache2", url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 
-licenses += ("Apache2", url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
-
-homepage := Some(url("https://github.com/Kanaka-io/play-monadic-actions"))
-
-pomExtra := <scm>
-  <url>git@github.com:Kanaka-io/play-monadic-actions.git</url>
-  <connection>scm:git:git@github.com:Kanaka-io/play-monadic-actions.git</connection>
-</scm>
-  <developers>
-    <developer>
-      <id>vkasas</id>
-      <name>Valentin Kasas</name>
-      <url>https://twitter.com/ValentinKasas</url>
-    </developer>
-  </developers>
-
-publishArtifact in Test := false
+// To publish, put these credentials in ~/.ivy2/credentials
+//credentials += Credentials("Sonatype Nexus Repository Manager", "publish-nexus.agiledigital.com.au", "****", "****"),
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
 publishTo := {
-  val nexus = "https://oss.sonatype.org/"
-  if (isSnapshot.value)
+  val nexus = "http://publish-nexus.agiledigital.com.au/nexus/"
+  if (version.value.trim.endsWith("SNAPSHOT")) {
     Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+  } else {
+    Some("releases" at nexus + "content/repositories/releases")
+  }
 }
