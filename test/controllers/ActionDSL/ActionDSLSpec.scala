@@ -19,16 +19,18 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.{JsError, JsSuccess}
 import play.api.mvc.Results
-import play.api.test.PlaySpecification
+import play.api.test.{FakeApplication, PlaySpecification}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
-import scalaz.syntax.id._
-
+import scalaz.syntax.either._
+import scala.concurrent.ExecutionContext.Implicits.global
 /**
  * @author Valentin Kasas
  */
 class ActionDSLSpec extends PlaySpecification with MonadicActions with Results {
+
+  implicit val app = FakeApplication()
 
   "ActionDSL" should {
 
@@ -90,13 +92,13 @@ class ActionDSLSpec extends PlaySpecification with MonadicActions with Results {
       await((jsSuccess ?| NotFound).run) mustEqual 42.right
 
       val jsError = JsError("foo")
-      val eitherT = jsError ?| (e => BadRequest(JsError.toFlatJson(e)))
+      val eitherT = jsError ?| (e => BadRequest(JsError.toJson(e)))
       await(eitherT.run).toEither must beLeft
 
       val result = eitherT.run.map(_.swap.getOrElse(NotFound))
       status(result) mustEqual 400
 
-      contentAsString(result) must contain(JsError.toFlatJson(jsError).toString())
+      contentAsString(result) must contain(JsError.toJson(jsError).toString())
     }
 
     "properly promote Form[A] to Step[A]" in {
@@ -104,6 +106,8 @@ class ActionDSLSpec extends PlaySpecification with MonadicActions with Results {
       await((successfulForm ?| NotFound).run) mustEqual 42.right
 
       val erroneousForm = successfulForm.withError("int", "foo")
+      import play.api.Play.current
+      import play.api.i18n.Messages.Implicits._
       val eitherT = erroneousForm ?| (f => BadRequest(f.errorsAsJson))
       await(eitherT.run).toEither must beLeft
 

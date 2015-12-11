@@ -20,11 +20,10 @@ import play.api.data.Form
 import play.api.data.validation.ValidationError
 import play.api.libs.json.{JsPath, JsResult}
 import play.api.mvc.{Results, Result}
-
+import scalaz.syntax.either._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
-import scalaz.syntax.id._
 import scalaz.syntax.std.option._
 import scalaz._
 
