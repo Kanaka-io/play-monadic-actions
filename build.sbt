@@ -1,13 +1,16 @@
 name := """play-monadic-actions"""
 
-version := "1.0.1-SNAPSHOT"
+version := "1.1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := "2.11.1"
+scalaVersion := "2.11.7"
+
+resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
 
 libraryDependencies ++= Seq(
-  "org.scalaz" %% "scalaz-core" % "7.0.6"
+  "org.scalaz" %% "scalaz-core" % "7.1.0",
+  "com.typesafe.play" %% "play-specs2" % "2.4.3"
 )
 
 organization := "io.kanaka"
