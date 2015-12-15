@@ -89,6 +89,8 @@ which would yield an `InternalServerError` if the two passwords don't match.
 
 [Damien Gouyette](https://twitter.com/cestpasdur)
 
+[David R. Bild](https://github.com/drbild)
+
 ... your name here
 
 ## Credits
