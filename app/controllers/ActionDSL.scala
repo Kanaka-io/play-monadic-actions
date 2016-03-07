@@ -136,7 +136,7 @@ package object ActionDSL {
       override def orFailWith(failureHandler: (Throwable) => Result) = fromTry(failureHandler)(tryValue)
     }
 
-    implicit def stepToResult(step: Step[Result]): Future[Result] = step.run.map(_.toEither.merge)(executionContext)
+    implicit def stepToResult[R <: Result](step: Step[R]): Future[Result] = step.run.map(_.toEither.merge)(executionContext)
 
     implicit def stepToEither[A](step: Step[A]): Future[Either[Result, A]] = step.run.map(_.toEither)(executionContext)
   }
