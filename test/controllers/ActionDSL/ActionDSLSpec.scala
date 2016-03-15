@@ -87,6 +87,20 @@ class ActionDSLSpec extends PlaySpecification with MonadicActions with Results {
       await((none ?| NotFound).run) mustEqual NotFound.left
     }
 
+    "properly promote B \\/ A to Step[A]" in {
+      val right = 42.right[String]
+      await((right ?| NotFound).run) mustEqual 42.right
+
+      val left = "foo".left[Int]
+      val eitherT = left ?| (s => BadRequest(s))
+      await(eitherT.run).toEither must beLeft
+
+      val result = eitherT.run.map(_.swap.getOrElse(NotFound))
+      status(result) mustEqual 400
+
+      contentAsString(result) must contain("foo")
+    }
+
     "properly promote JsResult[A] to Step[A]" in {
       val jsSuccess = JsSuccess(42)
       await((jsSuccess ?| NotFound).run) mustEqual 42.right
