@@ -54,6 +54,12 @@ package object ActionDSL {
   private [ActionDSL] def fromOption[A](onNone: => Result)(option: Option[A]): Step[A] =
     EitherT[Future, Result, A](Future.successful(option \/> onNone))
 
+  private [ActionDSL] def fromEither[A,B](onLeft: B => Result)(either: Either[B,A])(implicit ec: ExecutionContext): Step[A] =
+    EitherT[Future, Result, A](Future.successful(either.fold(onLeft andThen \/.left, \/.right)))
+
+  private [ActionDSL] def fromDisjunction[A,B](onLeft: B => Result)(disjunction: B \/ A)(implicit ec: ExecutionContext): Step[A] =
+    EitherT[Future, Result, A](Future.successful(disjunction.leftMap(onLeft)))
+
   private [ActionDSL] def fromJsResult[A](onJsError: JsErrorContent => Result)(jsResult: JsResult[A]): Step[A] =
     EitherT[Future, Result, A](Future.successful(jsResult.fold(onJsError andThen \/.left, \/.right)))
 
@@ -118,6 +124,14 @@ package object ActionDSL {
 
     implicit def optionToStepOps[A](option: Option[A]):StepOps[A, Unit] = new StepOps[A, Unit] {
       override def orFailWith(failureHandler: (Unit) => Result) = fromOption(failureHandler(()))(option)
+    }
+
+    implicit def eitherToStepOps[A, B](either: Either[B,A]): StepOps[A,B] = new StepOps[A,B] {
+      override def orFailWith(failureHandler: (B) => Result) = fromEither(failureHandler)(either)(executionContext)
+    }
+
+    implicit def disjunctionToStepOps[A, B](disjunction: B \/ A): StepOps[A,B] = new StepOps[A, B] {
+      override def orFailWith(failureHandler: (B) => Result) = fromDisjunction(failureHandler)(disjunction)(executionContext)
     }
 
     implicit def jsResultToStepOps[A](jsResult: JsResult[A]): StepOps[A, JsErrorContent] = new StepOps[A, JsErrorContent] {
