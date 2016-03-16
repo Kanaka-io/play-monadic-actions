@@ -1,7 +1,7 @@
 Play monadic actions
 ====================
 
-[![Build Status](https://travis-ci.org/Kanaka-io/play-monadic-actions.svg?branch=master)](https://travis-ci.org/Kanaka-io/play-monadic-actions)
+[![Build Status](https://travis-ci.org/Kanaka-io/play-monadic-actions.svg?branch=master)](https://travis-ci.org/Kanaka-io/play-monadic-actions) [![Gitter chat](https://badges.gitter.im/Kanaka-io/play-monadic-actions.png)](https://gitter.im/Kanaka-io/play-monadic-actions "Gitter chat")
 
 This little play module provides some syntactic sugar that allows boilerplate-free Actions using for-comprehensions.
 
