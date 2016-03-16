@@ -12,10 +12,15 @@ The [slides](https://kanaka-io.github.io/play-monadic-actions/index.html) (in fr
 
 Using sbt :
 
-Current version is 1.1.0
+Last version is 1.1.0
 ~~~scala
 libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "1.1.0"
 ~~~
+
+## Compatibility
+
+- Version `1.0.1` is compatible with Play! `2.3.x`
+- Version `1.1.0` is compatible with Play! `2.4.x`
 
 ## Usage
 
