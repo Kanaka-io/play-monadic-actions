@@ -32,7 +32,9 @@ import scalaz._
  */
 package object ActionDSL {
 
-  type Step[A] = EitherT[Future, Result, A]
+  type StepT[F[_], A] = EitherT[F, Result, A]
+  type Step[A] = StepT[Future, A]
+
   type JsErrorContent = Seq[(JsPath, Seq[ValidationError])]
 
   private [ActionDSL] def fromFuture[A](onFailure: Throwable => Result)(future: Future[A])(implicit ec: ExecutionContext): Step[A] =
@@ -85,6 +87,9 @@ package object ActionDSL {
   trait MonadicActions {
 
     import scala.language.implicitConversions
+
+    type StepT[F[_], A] = ActionDSL.StepT[F, A]
+    type Step[A] = ActionDSL.Step[A]
 
     val executionContext: ExecutionContext = play.api.libs.concurrent.Execution.defaultContext
 
