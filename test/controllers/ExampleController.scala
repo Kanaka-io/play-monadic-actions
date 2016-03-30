@@ -6,6 +6,8 @@ import play.api.mvc.{Action, Controller}
 import scala.concurrent.Future
 import scala.util.Try
 
+import scalaz.syntax.monad._
+
 /**
  * @author Valentin Kasas
  */
@@ -16,8 +18,10 @@ object ExampleController extends Controller with MonadicActions {
   def action(idStr: String) = Action.async {
     request =>
       for {
-        id <- Try(idStr.toLong) ?| BadRequest
-        number <- service(id) ?| NotFound
+        id          <- Try(idStr.toLong) ?| BadRequest
+        constNumber <- 1                 .point[Step]
+        optNumber   <- service(id)       .liftM[StepT]
+        number      <- service(id)       ?| NotFound
       } yield Ok(number.toString)
   }
 
