@@ -106,6 +106,10 @@ package object ActionDSL {
       override def append(f1: Result, f2: => Result) = throw new IllegalStateException("should not happen")
     }
 
+    implicit class FutureOps[A](future: Future[A]) {
+      def -| : Step[A] = EitherT[Future, Result, A](future.map(_.right)(executionContext))
+    }
+
     implicit def futureToStepOps[A](future: Future[A]): StepOps[A, Throwable] = new StepOps[A, Throwable] {
       override def orFailWith(failureHandler: (Throwable) => Result) = fromFuture(failureHandler)(future)(executionContext)
     }
