@@ -11,13 +11,16 @@ import scala.util.Try
  */
 object ExampleController extends Controller with MonadicActions {
 
+  def normalize(idStr: String) = Future.successful(idStr.trim)
+
   def service(id: Long) = Future.successful(Some(id * 2))
 
   def action(idStr: String) = Action.async {
     request =>
       for {
-        id <- Try(idStr.toLong) ?| BadRequest
-        number <- service(id) ?| NotFound
+        normed <- normalize(idStr)   .-|
+        id     <- Try(normed.toLong)  ?| BadRequest
+        number <- service(id)         ?| NotFound
       } yield Ok(number.toString)
   }
 
