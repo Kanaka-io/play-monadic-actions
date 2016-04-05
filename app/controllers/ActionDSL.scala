@@ -122,6 +122,10 @@ package object ActionDSL {
       override def orFailWith(failureHandler: (B) => Result) = fromFEither(failureHandler)(fEither)(executionContext)
     }
 
+    implicit def eitherTToStepOps[A, B](eitherT: EitherT[Future, B, A]): StepOps[A, B] = new StepOps[A, B] {
+      override def orFailWith(failureHandler: B => Result) = fromFDisjunction(failureHandler)(eitherT.run)(executionContext)
+    }
+
     implicit def fDisjunctionToStepOps[A, B](fDisjunction: Future[B \/ A]): StepOps[A,B] = new StepOps[A, B] {
       override def orFailWith(failureHandler: (B) => Result) = fromFDisjunction(failureHandler)(fDisjunction)(executionContext)
     }

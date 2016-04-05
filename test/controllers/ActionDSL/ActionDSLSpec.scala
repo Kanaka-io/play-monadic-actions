@@ -23,6 +23,7 @@ import play.api.test.{FakeApplication, PlaySpecification}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
+import scalaz.EitherT
 import scalaz.syntax.either._
 import scala.concurrent.ExecutionContext.Implicits.global
 /**
@@ -65,6 +66,20 @@ class ActionDSLSpec extends PlaySpecification with MonadicActions with Results {
       contentAsString(result) must contain("foo")
     }
     
+    "properly promote EitherT[Future, ?, A] to Step[A]" in {
+      val rightEitherT = EitherT.eitherT(Future.successful(42.right[String]))
+      await((rightEitherT ?| NotFound).run) mustEqual 42.right
+
+      val leftEitherT = EitherT.eitherT(Future.successful("foot".left[Int]))
+      val step = leftEitherT ?| (s => BadRequest(s))
+      await(step.run).toEither must beLeft
+
+      val result = step.run.map(_.swap.getOrElse(NotFound))
+      status(result) mustEqual 400
+
+      contentAsString(result) must contain("foo")
+    }
+
     "properly promote Future[B \\/ A] to Step[A]" in {
       val rightFuture = Future.successful(42.right[String])
       await((rightFuture ?| NotFound).run) mustEqual 42.right
