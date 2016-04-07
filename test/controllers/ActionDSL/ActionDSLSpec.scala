@@ -18,12 +18,11 @@ package controllers.ActionDSL
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.{JsError, JsSuccess}
-import play.api.mvc.Results
+import play.api.mvc.{Result, Results}
 import play.api.test.{FakeApplication, PlaySpecification}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
-import scalaz.syntax.either._
 import scala.concurrent.ExecutionContext.Implicits.global
 /**
  * @author Valentin Kasas
@@ -36,44 +35,30 @@ class ActionDSLSpec extends PlaySpecification with MonadicActions with Results {
 
     "properly promote Future[A] to Step[A]" in {
       val successfulFuture = Future.successful(42)
-      await((successfulFuture ?| NotFound).run) mustEqual 42.right
+      await((successfulFuture ?| NotFound).run) mustEqual Right(42)
 
       val failedFuture = Future.failed[Int](new NullPointerException)
-      await((failedFuture ?| NotFound).run) mustEqual NotFound.left
+      await((failedFuture ?| NotFound).run) mustEqual Left(NotFound)
     }
 
     "properly promote Future[Option[A]] to Step[A]" in {
       val someFuture = Future.successful(Some(42))
-      await((someFuture ?| NotFound).run) mustEqual 42.right
+      await((someFuture ?| NotFound).run) mustEqual Right(42)
 
       val noneFuture = Future.successful[Option[Int]](None)
-      await((noneFuture ?| NotFound).run) mustEqual NotFound.left
+      await((noneFuture ?| NotFound).run) mustEqual Left(NotFound)
     }
 
 
     "properly promote Future[Either[B, A]] to Step[A]" in {
       val rightFuture = Future.successful[Either[String, Int]](Right(42))
-      await((rightFuture ?| NotFound).run) mustEqual 42.right
+      await((rightFuture ?| NotFound).run) mustEqual Right(42)
 
       val leftFuture = Future.successful[Either[String, Int]](Left("foo"))
-      val eitherT = leftFuture ?| (s => BadRequest(s))
-      await(eitherT.run).toEither must beLeft
+      val step = leftFuture ?| (s => BadRequest(s))
+      await(step.run) must beLeft
 
-      val result = eitherT.run.map(_.swap.getOrElse(NotFound))
-      status(result) mustEqual 400
-
-      contentAsString(result) must contain("foo")
-    }
-    
-    "properly promote Future[B \\/ A] to Step[A]" in {
-      val rightFuture = Future.successful(42.right[String])
-      await((rightFuture ?| NotFound).run) mustEqual 42.right
-
-      val leftFuture = Future.successful("foo".left[Int])
-      val eitherT = leftFuture ?| (s => BadRequest(s))
-      await(eitherT.run).toEither must beLeft
-
-      val result = eitherT.run.map(_.swap.getOrElse(NotFound))
+      val result = step.run.map(_.swap.right.getOrElse(NotFound))
       status(result) mustEqual 400
 
       contentAsString(result) must contain("foo")
@@ -81,49 +66,35 @@ class ActionDSLSpec extends PlaySpecification with MonadicActions with Results {
     
     "properly promote Option[A] to Step[A]" in {
       val some = Some(42)
-      await((some ?| NotFound).run) mustEqual 42.right
+      await((some ?| NotFound).run) mustEqual Right(42)
       
       val none = None
-      await((none ?| NotFound).run) mustEqual NotFound.left
+      await((none ?| NotFound).run) mustEqual Left(NotFound)
     }
 
     "properly promote Either[B, A] to Step[A]" in {
       val right = Right[String, Int](42)
-      await((right ?| NotFound).run) mustEqual 42.right
+      await((right ?| NotFound).run) mustEqual Right(42)
 
       val left = Left[String, Int]("foo")
-      val eitherT = left ?| (s => BadRequest(s))
-      await(eitherT.run).toEither must beLeft
+      val step = left ?| (s => BadRequest(s))
+      await(step.run) must beLeft
 
-      val result = eitherT.run.map(_.swap.getOrElse(NotFound))
+      val result:Future[Result] = step.run.map(_.swap.right.getOrElse(NotFound))
       status(result) mustEqual 400
 
       contentAsString(result) must contain ("foo")
     }
 
-    "properly promote B \\/ A to Step[A]" in {
-      val right = 42.right[String]
-      await((right ?| NotFound).run) mustEqual 42.right
-
-      val left = "foo".left[Int]
-      val eitherT = left ?| (s => BadRequest(s))
-      await(eitherT.run).toEither must beLeft
-
-      val result = eitherT.run.map(_.swap.getOrElse(NotFound))
-      status(result) mustEqual 400
-
-      contentAsString(result) must contain("foo")
-    }
-
     "properly promote JsResult[A] to Step[A]" in {
       val jsSuccess = JsSuccess(42)
-      await((jsSuccess ?| NotFound).run) mustEqual 42.right
+      await((jsSuccess ?| NotFound).run) mustEqual Right(42)
 
       val jsError = JsError("foo")
-      val eitherT = jsError ?| (e => BadRequest(JsError.toJson(e)))
-      await(eitherT.run).toEither must beLeft
+      val step = jsError ?| (e => BadRequest(JsError.toJson(e)))
+      await(step.run) must beLeft
 
-      val result = eitherT.run.map(_.swap.getOrElse(NotFound))
+      val result = step.run.map(_.swap.right.getOrElse(NotFound))
       status(result) mustEqual 400
 
       contentAsString(result) must contain(JsError.toJson(jsError).toString())
@@ -131,34 +102,34 @@ class ActionDSLSpec extends PlaySpecification with MonadicActions with Results {
 
     "properly promote Form[A] to Step[A]" in {
       val successfulForm = Form(single("int" -> number), Map("int" -> "42"), Nil, Some(42))
-      await((successfulForm ?| NotFound).run) mustEqual 42.right
+      await((successfulForm ?| NotFound).run) mustEqual Right(42)
 
       val erroneousForm = successfulForm.withError("int", "foo")
       import play.api.Play.current
       import play.api.i18n.Messages.Implicits._
-      val eitherT = erroneousForm ?| (f => BadRequest(f.errorsAsJson))
-      await(eitherT.run).toEither must beLeft
+      val step = erroneousForm ?| (f => BadRequest(f.errorsAsJson))
+      await(step.run) must beLeft
 
-      val result = eitherT.run.map(_.swap.getOrElse(NotFound))
+      val result = step.run.map(_.swap.right.getOrElse(NotFound))
       status(result) mustEqual 400
 
       contentAsString(result) must contain(erroneousForm.errorsAsJson.toString())
     }
     
     "properly promote Boolean to Step[A]" in {
-      await((true ?| NotFound).run) mustEqual ().right
-      await((false ?| NotFound).run) mustEqual NotFound.left
+      await((true ?| NotFound).run) mustEqual Right(())
+      await((false ?| NotFound).run) mustEqual Left(NotFound)
     }
     
     "properly promote Try[A] to Step[A]" in {
       val success = Success(42)
-      await((success ?| NotFound).run) mustEqual 42.right
+      await((success ?| NotFound).run) mustEqual Right(42)
       
       val failure = Failure(new Exception("foo"))
-      val eitherT = failure ?| (e => BadRequest(e.getMessage))
-      await(eitherT.run).toEither must beLeft
+      val step = failure ?| (e => BadRequest(e.getMessage))
+      await(step.run) must beLeft
 
-      val result = eitherT.run.map(_.swap.getOrElse(NotFound))
+      val result: Future[Result] = step.run.map(_.swap.right.getOrElse(NotFound))
       status(result) mustEqual 400
 
       contentAsString(result) must contain("foo")
