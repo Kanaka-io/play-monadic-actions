@@ -1,10 +1,10 @@
 name := """play-monadic-actions"""
 
-version := "1.1.1-SNAPSHOT"
+version := "2.0.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
 
