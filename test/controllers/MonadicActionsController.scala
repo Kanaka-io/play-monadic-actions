@@ -17,7 +17,7 @@ object MonadicActionsController extends Controller with MonadicActions {
 
   def twoFields = Action.async { implicit request =>
     for {
-      (id , "foo") <- twoFieldForm.bindFromRequest ?| (formWithErrors => BadRequest(formWithErrors.errorsAsJson)) if false
+      (id , "foo") <- twoFieldForm.bindFromRequest ?| (formWithErrors => BadRequest(formWithErrors.errorsAsJson)) //if false
     } yield { Ok("") }
   }
 }
