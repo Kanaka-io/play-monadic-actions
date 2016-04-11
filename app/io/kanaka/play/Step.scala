@@ -18,3 +18,9 @@ final case class Step[A](run: Future[Either[Result, A]], executionContext: Execu
   }(executionContext))
 
 }
+
+object Step {
+
+  def unit[A](a: A): Step[A] = Step(Future.successful(Right(a)), scala.concurrent.ExecutionContext.global)
+
+}
