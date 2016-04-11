@@ -9,7 +9,8 @@ scalaVersion := "2.11.8"
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
 
 libraryDependencies ++= Seq(
-  "com.typesafe.play" %% "play-specs2" % "2.4.3"
+  "com.typesafe.play" %% "play-specs2" % "2.4.3" % "test",
+  "org.scalacheck" %% "scalacheck" % "1.13.0" % "test"
 )
 
 organization := "io.kanaka"
