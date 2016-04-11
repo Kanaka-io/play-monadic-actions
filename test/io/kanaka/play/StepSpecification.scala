@@ -1,13 +1,12 @@
 package io.kanaka.play
 
-import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
-import Gen._
 import org.scalacheck.Arbitrary.arbitrary
-import Prop._
+import org.scalacheck.Prop._
+import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
 import play.api.mvc.{Result, Results}
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 /**
   * @author Valentin Kasas
