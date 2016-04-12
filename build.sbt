@@ -1,29 +1,41 @@
-name := """play-monadic-actions"""
+version in ThisBuild := "2.0.0-SNAPSHOT"
 
-version := "2.0.0-SNAPSHOT"
-
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
-
-scalaVersion := "2.11.8"
-
-resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
-
-libraryDependencies ++= Seq(
-  "com.typesafe.play" %% "play-specs2" % "2.4.3" % "test",
-  "org.scalacheck" %% "scalacheck" % "1.13.0" % "test"
+val commonSettings = Seq (
+  resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
+  libraryDependencies ++= Seq(
+    "com.typesafe.play" %% "play-specs2" % "2.4.3" % "test",
+    "org.scalacheck" %% "scalacheck" % "1.13.0" % "test"
+  )
 )
 
-organization := "io.kanaka"
+lazy val core = (project in file("core")).enablePlugins(PlayScala)
+  .settings(commonSettings:_*)
+  .settings(name := "play-monadic-actions")
+
+lazy val scalaz = (project in file("scalaz"))
+  .settings(commonSettings:_*)
+  .settings(
+    name := "play-monadic-actions-scalaz",
+    libraryDependencies ++= Seq("org.scalaz" %% "scalaz-core" % "7.1.0")
+  )
+  .dependsOn(core)
+  .enablePlugins(PlayScala)
+
+
+scalaVersion in ThisBuild := "2.11.8"
+
+
+organization in ThisBuild := "io.kanaka"
 
 description := "Mini DSL to allow the writing of Play! actions using for-comprehensions"
 
-publishMavenStyle := true
+publishMavenStyle in ThisBuild := true
 
-licenses += ("Apache2", url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
+licenses in ThisBuild += ("Apache2", url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 
-homepage := Some(url("https://github.com/Kanaka-io/play-monadic-actions"))
+homepage in ThisBuild := Some(url("https://github.com/Kanaka-io/play-monadic-actions"))
 
-pomExtra := <scm>
+pomExtra in ThisBuild := <scm>
   <url>git@github.com:Kanaka-io/play-monadic-actions.git</url>
   <connection>scm:git:git@github.com:Kanaka-io/play-monadic-actions.git</connection>
 </scm>
@@ -37,7 +49,7 @@ pomExtra := <scm>
 
 publishArtifact in Test := false
 
-publishTo := {
+publishTo in ThisBuild := {
   val nexus = "https://oss.sonatype.org/"
   if (isSnapshot.value)
     Some("snapshots" at nexus + "content/repositories/snapshots")
