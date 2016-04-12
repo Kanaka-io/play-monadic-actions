@@ -24,3 +24,10 @@ object Step {
   def unit[A](a: A): Step[A] = Step(Future.successful(Right(a)), scala.concurrent.ExecutionContext.global)
 
 }
+
+
+trait StepOps[A, B] {
+  def orFailWith(failureHandler: B => Result):Step[A]
+  def ?|(failureHandler: B => Result): Step[A] = orFailWith(failureHandler)
+  def ?|(failureThunk: => Result): Step[A] = orFailWith(_ => failureThunk)
+}

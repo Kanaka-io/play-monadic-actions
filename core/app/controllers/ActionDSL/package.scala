@@ -15,7 +15,7 @@
  */
 package controllers
 
-import io.kanaka.play.Step
+import io.kanaka.play.{Step, StepOps}
 import play.api.data.Form
 import play.api.data.validation.ValidationError
 import play.api.libs.json.{JsPath, JsResult}
@@ -90,14 +90,6 @@ package object ActionDSL {
       }),
       executionContext = ec
     )
-
-
-  trait StepOps[A, B] {
-    def orFailWith(failureHandler: B => Result):Step[A]
-    def ?|(failureHandler: B => Result): Step[A] = orFailWith(failureHandler)
-    def ?|(failureThunk: => Result): Step[A] = orFailWith(_ => failureThunk)
-  }
-
 
   trait MonadicActions {
 
