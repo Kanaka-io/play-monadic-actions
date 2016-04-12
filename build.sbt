@@ -22,6 +22,16 @@ lazy val scalaz = (project in file("scalaz"))
   .enablePlugins(PlayScala)
 
 
+lazy val cats = (project in file("cats"))
+  .settings(commonSettings:_*)
+  .settings(
+    name := "play-monadic-actions-cats",
+    libraryDependencies ++= Seq("org.typelevel" %% "cats" % "0.4.1")
+  )
+  .dependsOn(core)
+  .enablePlugins(PlayScala)
+
+
 scalaVersion in ThisBuild := "2.11.8"
 
 
