@@ -1,17 +1,18 @@
-package io.kanaka.play.scalaz
+package io.kanaka.play
 
 import controllers.ActionDSL._
+import io.kanaka.play.compat.scalaz._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Results
 import play.api.test.{FakeApplication, PlaySpecification}
 
-import _root_.scalaz.syntax.either._
-import _root_.scalaz.syntax.validation._
-import _root_.scalaz.\/
 import scala.concurrent.Future
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import scalaz.syntax.either._
+import scalaz.syntax.validation._
+
 /**
-  * @author Valentin Kasas
-  */
+ * @author Valentin Kasas
+ */
 class ScalazStepOpsSpec extends PlaySpecification with MonadicActions with Results {
 
   import scalaz._
