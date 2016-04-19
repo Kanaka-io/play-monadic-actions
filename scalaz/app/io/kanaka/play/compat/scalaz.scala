@@ -1,5 +1,6 @@
-package io.kanaka.play
+package io.kanaka.play.compat
 
+import io.kanaka.play.{Step, StepOps}
 import play.api.mvc.Result
 import _root_.scalaz.{\/, Validation, Functor, Monad}
 
@@ -8,7 +9,7 @@ import scala.language.implicitConversions
 /**
   * @author Valentin Kasas
   */
-package object scalaz {
+trait ScalazToStepOps {
 
   implicit def disjunctionToStep[A, B](disjunction: B \/ A)(implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
     override def orFailWith(failureHandler: (B) => Result): Step[A] = Step(Future.successful(disjunction.leftMap(failureHandler).toEither), ec)
@@ -26,6 +27,10 @@ package object scalaz {
     override def orFailWith(failureHandler: (B) => Result): Step[A] = Step(futureValid.map(_.fold(failureHandler andThen Left.apply, Right.apply)), ec)
   }
 
+}
+
+trait ScalazStepInstances {
+
   implicit val stepFunctor: Functor[Step] = new Functor[Step] {
     override def map[A, B](fa: Step[A])(f: (A) => B): Step[B] = fa map f
   }
@@ -35,4 +40,7 @@ package object scalaz {
 
     override def point[A](a: => A): Step[A] = Step.unit(a)
   }
+
 }
+
+object scalaz extends ScalazStepInstances with ScalazToStepOps
