@@ -1,7 +1,8 @@
-package io.kanaka.play.cats
+package io.kanaka.play
 
-import _root_.cats.data.{Validated, Xor}
+import cats.data.{Validated, Xor}
 import controllers.ActionDSL.MonadicActions
+import io.kanaka.play.compat.cats._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Results
 import play.api.test.{FakeApplication, PlaySpecification}
