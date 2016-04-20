@@ -1,16 +1,17 @@
-package io.kanaka.play
-
+package io.kanaka.play.compat
 
 import _root_.cats.{Functor, Monad}
 import _root_.cats.data.{Xor, Validated}
+import io.kanaka.play.{Step, StepOps}
 import play.api.mvc.Result
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
+
 /**
   * @author Valentin Kasas
   */
-package object cats {
+trait CatsToStepOps {
 
   implicit def xorToStep[A, B](xor: B Xor A)(implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
     override def orFailWith(failureHandler: (B) => Result): Step[A] = Step(Future.successful(xor.leftMap(failureHandler).toEither), ec)
@@ -28,6 +29,10 @@ package object cats {
     override def orFailWith(failureHandler: (B) => Result): Step[A] = Step(futureValidated.map(_.leftMap(failureHandler).toEither)(ec), ec)
   }
 
+}
+
+trait CatsStepInstances {
+
   implicit val stepFunctor: Functor[Step] = new Functor[Step] {
     override def map[A, B](fa: Step[A])(f: (A) => B): Step[B] = fa map f
   }
@@ -38,4 +43,7 @@ package object cats {
 
     override def pure[A](x: A): Step[A] = Step.unit(x)
   }
+
 }
+
+object cats extends CatsStepInstances with CatsToStepOps
