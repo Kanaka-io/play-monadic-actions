@@ -15,19 +15,19 @@ lazy val core = (project in file("core")).enablePlugins(PlayScala)
   .settings(commonSettings:_*)
   .settings(name := "play-monadic-actions")
 
-def scalazCompatModuleSettings(moduleName: String, scalazVersion: String, output: File) = commonSettings ++ Seq(
+def scalazCompatModuleSettings(moduleName: String, base: String, scalazVersion: String) = commonSettings ++ Seq(
     name := moduleName,
     libraryDependencies ++= Seq("org.scalaz" %% "scalaz-core" % scalazVersion),
-    target := output
+    target := (baseDirectory).value / ".." / base / "target"
   )
 
 lazy val scalaz71 = (project in file("scalaz"))
-  .settings(scalazCompatModuleSettings("play-monadic-actions-scalaz_7.1", "7.1.0", file("scalaz71/target")))
+  .settings(scalazCompatModuleSettings("play-monadic-actions-scalaz_7.1", "scalaz71", "7.1.0"))
   .dependsOn(core)
   .enablePlugins(PlayScala)
 
 lazy val scalaz72 = (project in file("scalaz"))
-  .settings(scalazCompatModuleSettings("play-monadic-actions-scalaz_7.2", "7.2.0", file("scalaz72/target")))
+  .settings(scalazCompatModuleSettings("play-monadic-actions-scalaz_7.2", "scalaz72", "7.2.0"))
   .dependsOn(core)
   .enablePlugins(PlayScala)
 
