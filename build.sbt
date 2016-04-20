@@ -3,8 +3,11 @@ version in ThisBuild := "2.0.0-SNAPSHOT"
 val commonSettings = Seq (
   resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   libraryDependencies ++= Seq(
-    "com.typesafe.play" %% "play-specs2" % "2.4.3" % "test",
-    "org.scalacheck" %% "scalacheck" % "1.13.0" % "test"
+    "org.scalacheck" %% "scalacheck" % "1.13.0" % "test",
+    "org.specs2" %% "specs2-core" % "3.7" % "test",
+    "org.specs2" %% "specs2-junit" % "3.7" % "test",
+    "com.typesafe.play" %% "play-specs2" % "2.4.6" % "test" excludeAll ExclusionRule(organization = "org.specs2")
+
   )
 )
 
@@ -12,12 +15,19 @@ lazy val core = (project in file("core")).enablePlugins(PlayScala)
   .settings(commonSettings:_*)
   .settings(name := "play-monadic-actions")
 
-lazy val scalaz = (project in file("scalaz"))
-  .settings(commonSettings:_*)
-  .settings(
-    name := "play-monadic-actions-scalaz",
-    libraryDependencies ++= Seq("org.scalaz" %% "scalaz-core" % "7.1.0")
+def scalazCompatModuleSettings(moduleName: String, scalazVersion: String, output: File) = commonSettings ++ Seq(
+    name := moduleName,
+    libraryDependencies ++= Seq("org.scalaz" %% "scalaz-core" % scalazVersion),
+    target := output
   )
+
+lazy val scalaz71 = (project in file("scalaz"))
+  .settings(scalazCompatModuleSettings("play-monadic-actions-scalaz_7.1", "7.1.0", file("scalaz71/target")))
+  .dependsOn(core)
+  .enablePlugins(PlayScala)
+
+lazy val scalaz72 = (project in file("scalaz"))
+  .settings(scalazCompatModuleSettings("play-monadic-actions-scalaz_7.2", "7.2.0", file("scalaz72/target")))
   .dependsOn(core)
   .enablePlugins(PlayScala)
 
