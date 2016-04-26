@@ -1,7 +1,7 @@
 
 name := """play-monadic-actions"""
 
-version := "1.0.2"
+version := "1.1.4"
 
 lazy val root = project in file(".")
 
@@ -9,7 +9,7 @@ scalaVersion := "2.11.1"
 
 libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-core" % "7.1.3",
-  "com.typesafe.play" %% "play" % "2.4.2" % "provided"
+  "com.typesafe.play" %% "play" % "2.5.2" % "provided"
 )
 
 organization := "io.kanaka"

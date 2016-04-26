@@ -20,11 +20,10 @@ import play.api.data.Form
 import play.api.data.validation.ValidationError
 import play.api.libs.json.{JsPath, JsResult}
 import play.api.mvc.{Results, Result}
-
+import scalaz.syntax.either._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
-import scalaz.syntax.either._
 import scalaz.syntax.std.option._
 import scalaz._
 
@@ -55,6 +54,12 @@ package object ActionDSL {
   private [ActionDSL] def fromOption[A](onNone: => Result)(option: Option[A]): Step[A] =
     EitherT[Future, Result, A](Future.successful(option \/> onNone))
 
+  private [ActionDSL] def fromEither[A,B](onLeft: B => Result)(either: Either[B,A])(implicit ec: ExecutionContext): Step[A] =
+    EitherT[Future, Result, A](Future.successful(either.fold(onLeft andThen \/.left, \/.right)))
+
+  private [ActionDSL] def fromDisjunction[A,B](onLeft: B => Result)(disjunction: B \/ A)(implicit ec: ExecutionContext): Step[A] =
+    EitherT[Future, Result, A](Future.successful(disjunction.leftMap(onLeft)))
+
   private [ActionDSL] def fromJsResult[A](onJsError: JsErrorContent => Result)(jsResult: JsResult[A]): Step[A] =
     EitherT[Future, Result, A](Future.successful(jsResult.fold(onJsError andThen \/.left, \/.right)))
 
@@ -81,16 +86,14 @@ package object ActionDSL {
 
     import scala.language.implicitConversions
 
-    val executionContext: ExecutionContext = play.api.libs.concurrent.Execution.defaultContext
-
-    implicit val futureIsAFunctor = new Functor[Future] {
-      override def map[A, B](fa: Future[A])(f: (A) => B) = fa.map(f)(executionContext)
+    implicit def futureIsAFunctor(implicit ec: ExecutionContext) = new Functor[Future] {
+      override def map[A, B](fa: Future[A])(f: (A) => B) = fa.map(f)(ec)
     }
 
-    implicit val futureIsAMonad = new Monad[Future] {
-      override def point[A](a: => A) = Future(a)(executionContext)
+    implicit def futureIsAMonad(implicit ec: ExecutionContext) = new Monad[Future] {
+      override def point[A](a: => A) = Future(a)(ec)
 
-      override def bind[A, B](fa: Future[A])(f: (A) => Future[B]) = fa.flatMap(f)(executionContext)
+      override def bind[A, B](fa: Future[A])(f: (A) => Future[B]) = fa.flatMap(f)(ec)
     }
 
     // This instance is needed to enable filtering/pattern-matching in for-comprehensions
@@ -101,24 +104,36 @@ package object ActionDSL {
       override def append(f1: Result, f2: => Result) = throw new IllegalStateException("should not happen")
     }
 
-    implicit def futureToStepOps[A](future: Future[A]): StepOps[A, Throwable] = new StepOps[A, Throwable] {
-      override def orFailWith(failureHandler: (Throwable) => Result) = fromFuture(failureHandler)(future)(executionContext)
+    implicit class FutureOps[A](future: Future[A])(implicit ec: ExecutionContext) {
+      def -| : Step[A] = EitherT[Future, Result, A](future.map(_.right)(ec))
     }
 
-    implicit def fOptionToStepOps[A](fOption: Future[Option[A]]):StepOps[A,Unit] = new StepOps[A, Unit]{
-      override def orFailWith(failureHandler: Unit => Result) = fromFOption(failureHandler(()))(fOption)(executionContext)
+    implicit def futureToStepOps[A](future: Future[A])(implicit ec: ExecutionContext): StepOps[A, Throwable] = new StepOps[A, Throwable] {
+      override def orFailWith(failureHandler: (Throwable) => Result) = fromFuture(failureHandler)(future)(ec)
     }
 
-    implicit def fEitherToStepOps[A, B](fEither: Future[Either[B,A]]): StepOps[A,B] = new StepOps[A,B] {
-      override def orFailWith(failureHandler: (B) => Result) = fromFEither(failureHandler)(fEither)(executionContext)
+    implicit def fOptionToStepOps[A](fOption: Future[Option[A]])(implicit ec: ExecutionContext):StepOps[A,Unit] = new StepOps[A, Unit]{
+      override def orFailWith(failureHandler: Unit => Result) = fromFOption(failureHandler(()))(fOption)(ec)
     }
 
-    implicit def fDisjunctionToStepOps[A, B](fDisjunction: Future[B \/ A]): StepOps[A,B] = new StepOps[A, B] {
-      override def orFailWith(failureHandler: (B) => Result) = fromFDisjunction(failureHandler)(fDisjunction)(executionContext)
+    implicit def fEitherToStepOps[A, B](fEither: Future[Either[B,A]])(implicit ec: ExecutionContext): StepOps[A,B] = new StepOps[A,B] {
+      override def orFailWith(failureHandler: (B) => Result) = fromFEither(failureHandler)(fEither)(ec)
+    }
+
+    implicit def fDisjunctionToStepOps[A, B](fDisjunction: Future[B \/ A])(implicit ec: ExecutionContext): StepOps[A,B] = new StepOps[A, B] {
+      override def orFailWith(failureHandler: (B) => Result) = fromFDisjunction(failureHandler)(fDisjunction)(ec)
     }
 
     implicit def optionToStepOps[A](option: Option[A]):StepOps[A, Unit] = new StepOps[A, Unit] {
       override def orFailWith(failureHandler: (Unit) => Result) = fromOption(failureHandler(()))(option)
+    }
+
+    implicit def eitherToStepOps[A, B](either: Either[B,A])(implicit ec: ExecutionContext): StepOps[A,B] = new StepOps[A,B] {
+      override def orFailWith(failureHandler: (B) => Result) = fromEither(failureHandler)(either)(ec)
+    }
+
+    implicit def disjunctionToStepOps[A, B](disjunction: B \/ A)(implicit ec: ExecutionContext): StepOps[A,B] = new StepOps[A, B] {
+      override def orFailWith(failureHandler: (B) => Result) = fromDisjunction(failureHandler)(disjunction)(ec)
     }
 
     implicit def jsResultToStepOps[A](jsResult: JsResult[A]): StepOps[A, JsErrorContent] = new StepOps[A, JsErrorContent] {
@@ -137,8 +152,8 @@ package object ActionDSL {
       override def orFailWith(failureHandler: (Throwable) => Result) = fromTry(failureHandler)(tryValue)
     }
 
-    implicit def stepToResult(step: Step[Result]): Future[Result] = step.run.map(_.toEither.merge)(executionContext)
+    implicit def stepToResult[R <: Result](step: Step[R])(implicit ec: ExecutionContext): Future[Result] = step.run.map(_.toEither.merge)(ec)
 
-    implicit def stepToEither[A](step: Step[A]): Future[Either[Result, A]] = step.run.map(_.toEither)(executionContext)
+    implicit def stepToEither[A](step: Step[A])(implicit ec: ExecutionContext): Future[Either[Result, A]] = step.run.map(_.toEither)(ec)
   }
 }
