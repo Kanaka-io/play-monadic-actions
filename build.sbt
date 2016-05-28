@@ -1,3 +1,13 @@
+scalaVersion in ThisBuild := "2.11.8"
+
+organization in ThisBuild := "io.kanaka"
+
+description := "Mini DSL to allow the writing of Play! actions using for-comprehensions"
+
+licenses in ThisBuild += ("Apache2", url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
+
+homepage in ThisBuild := Some(url("https://github.com/Kanaka-io/play-monadic-actions"))
+
 version in ThisBuild := "2.0.0-SNAPSHOT"
 
 val commonSettings = Seq (
@@ -11,26 +21,24 @@ val commonSettings = Seq (
   )
 )
 
+def scalazCompatModuleSettings(moduleName: String, base: String, scalazVersion: String) = commonSettings ++ Seq(
+  name := moduleName,
+  libraryDependencies ++= Seq("org.scalaz" %% "scalaz-core" % scalazVersion),
+  target := baseDirectory.value / ".." / base / "target"
+)
+
+def scalazCompatModule(id: String, moduleName: String, scalazVersion: String) = Project(id = id, base = file("scalaz"))
+  .settings(scalazCompatModuleSettings(moduleName, id, scalazVersion):_*)
+  .dependsOn(core)
+  .enablePlugins(PlayScala)
+
 lazy val core = (project in file("core")).enablePlugins(PlayScala)
   .settings(commonSettings:_*)
   .settings(name := "play-monadic-actions")
 
-def scalazCompatModuleSettings(moduleName: String, base: String, scalazVersion: String) = commonSettings ++ Seq(
-    name := moduleName,
-    libraryDependencies ++= Seq("org.scalaz" %% "scalaz-core" % scalazVersion),
-    target := (baseDirectory).value / ".." / base / "target"
-  )
+lazy val scalaz71 = scalazCompatModule(id = "scalaz71", moduleName = "play-monadic-actions-scalaz_7.1", scalazVersion = "7.1.0")
 
-lazy val scalaz71 = (project in file("scalaz"))
-  .settings(scalazCompatModuleSettings("play-monadic-actions-scalaz_7.1", "scalaz71", "7.1.0"))
-  .dependsOn(core)
-  .enablePlugins(PlayScala)
-
-lazy val scalaz72 = (project in file("scalaz"))
-  .settings(scalazCompatModuleSettings("play-monadic-actions-scalaz_7.2", "scalaz72", "7.2.0"))
-  .dependsOn(core)
-  .enablePlugins(PlayScala)
-
+lazy val scalaz72 = scalazCompatModule(id = "scalaz72", moduleName = "play-monadic-actions-scalaz_7.2", scalazVersion = "7.2.0")
 
 lazy val cats = (project in file("cats"))
   .settings(commonSettings:_*)
@@ -42,18 +50,8 @@ lazy val cats = (project in file("cats"))
   .enablePlugins(PlayScala)
 
 
-scalaVersion in ThisBuild := "2.11.8"
-
-
-organization in ThisBuild := "io.kanaka"
-
-description := "Mini DSL to allow the writing of Play! actions using for-comprehensions"
 
 publishMavenStyle in ThisBuild := true
-
-licenses in ThisBuild += ("Apache2", url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
-
-homepage in ThisBuild := Some(url("https://github.com/Kanaka-io/play-monadic-actions"))
 
 pomExtra in ThisBuild := <scm>
   <url>git@github.com:Kanaka-io/play-monadic-actions.git</url>
