@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package controllers.ActionDSL
+package io.kanaka.monadic.dsl
 
 import play.api.data.Form
 import play.api.data.Forms._
@@ -21,9 +21,9 @@ import play.api.libs.json.{JsError, JsSuccess}
 import play.api.mvc.{Result, Results}
 import play.api.test.{FakeApplication, PlaySpecification}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
-import scala.concurrent.ExecutionContext.Implicits.global
 /**
  * @author Valentin Kasas
  */
@@ -105,7 +105,6 @@ class ActionDSLSpec extends PlaySpecification with MonadicActions with Results {
       await((successfulForm ?| NotFound).run) mustEqual Right(42)
 
       val erroneousForm = successfulForm.withError("int", "foo")
-      import play.api.Play.current
       import play.api.i18n.Messages.Implicits._
       val step = erroneousForm ?| (f => BadRequest(f.errorsAsJson))
       await(step.run) must beLeft
