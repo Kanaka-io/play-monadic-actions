@@ -28,7 +28,7 @@ import scalaz.syntax.validation._
 /**
  * @author Valentin Kasas
  */
-class ScalazStepOpsSpec extends PlaySpecification with MonadicActions with Results {
+class ScalazStepOpsSpec extends PlaySpecification with Results {
 
   import scalaz._
 

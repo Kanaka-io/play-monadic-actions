@@ -19,11 +19,12 @@ import io.kanaka.monadic.dsl._
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc.{Action, Controller}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
 
 // the fact that this file compiles proves that https://github.com/Kanaka-io/play-monadic-actions/issues/1 is solved
-object MonadicActionsController extends Controller with MonadicActions {
+object MonadicActionsController extends Controller {
 
   val twoFieldForm = Form(
     tuple("id" -> longNumber,

@@ -22,21 +22,22 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * @author Valentin Kasas
   */
-final case class Step[A](run: Future[Either[Result, A]], executionContext: ExecutionContext) {
+final case class Step[A](run: Future[Either[Result, A]]) {
 
-  def map[B](f : A => B) = copy(run = run.map(_.right.map(f))(executionContext))
+  def map[B](f : A => B)(implicit ec: ExecutionContext) = copy(run = run.map(_.right.map(f)))
 
-  def flatMap[B](f: A => Step[B]) = copy(run = run.flatMap(_.fold(err => Future.successful(Left[Result, B](err)), succ => f(succ).run))(executionContext))
+  def flatMap[B](f: A => Step[B])(implicit ec: ExecutionContext) =
+    copy(run = run.flatMap(_.fold(err => Future.successful(Left[Result, B](err)), succ => f(succ).run)))
 
-  def withFilter(p: A => Boolean): Step[A] = copy(run = run.filter {
+  def withFilter(p: A => Boolean)(implicit ec: ExecutionContext): Step[A] = copy(run = run.filter {
     case Right(a) if p(a) => true
-  }(executionContext))
+  })
 
 }
 
 object Step {
 
-  def unit[A](a: A): Step[A] = Step(Future.successful(Right(a)), scala.concurrent.ExecutionContext.global)
+  def unit[A](a: A): Step[A] = Step(Future.successful(Right(a)))
 
 }
 

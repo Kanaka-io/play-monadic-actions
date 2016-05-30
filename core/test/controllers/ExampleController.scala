@@ -15,16 +15,17 @@
  */
 package controllers
 
-import io.kanaka.monadic.dsl._
 import play.api.mvc.{Action, Controller}
-
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
 import scala.util.Try
 
+import io.kanaka.monadic.dsl._
 /**
- * @author Valentin Kasas
- */
-object ExampleController extends Controller with MonadicActions {
+  * @author Valentin Kasas
+  */
+object ExampleController extends Controller {
+
 
   def normalize(idStr: String) = Future.successful(idStr.trim)
 
