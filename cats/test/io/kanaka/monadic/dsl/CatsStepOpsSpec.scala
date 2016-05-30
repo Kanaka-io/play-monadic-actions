@@ -26,7 +26,7 @@ import scala.concurrent.Future
 /**
   * @author Valentin Kasas
   */
-class CatsStepOpsSpec extends PlaySpecification with MonadicActions with Results {
+class CatsStepOpsSpec extends PlaySpecification with Results {
 
   implicit val app = FakeApplication()
 

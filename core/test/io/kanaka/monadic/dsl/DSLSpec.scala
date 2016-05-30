@@ -27,7 +27,7 @@ import scala.util.{Failure, Success}
 /**
  * @author Valentin Kasas
  */
-class ActionDSLSpec extends PlaySpecification with MonadicActions with Results {
+class DSLSpec extends PlaySpecification with Results {
 
   implicit val app = FakeApplication()
 

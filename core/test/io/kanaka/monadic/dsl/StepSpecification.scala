@@ -19,7 +19,7 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Prop._
 import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
 import play.api.mvc.{Result, Results}
-
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
@@ -40,9 +40,10 @@ object StepSpecification extends Properties("Step") {
     result <- arbitrary[Result](arbResult)
   } yield {
     if (isLeft) {
-      Step(Future.successful(Left(result)), scala.concurrent.ExecutionContext.global)
+      Step(Future.successful(Left(result)))
     } else {
-      Step(Future.successful(Right(a)), scala.concurrent.ExecutionContext.global)
+      Step(Future.successful(Right(a))
+      )
     }
   })
 
