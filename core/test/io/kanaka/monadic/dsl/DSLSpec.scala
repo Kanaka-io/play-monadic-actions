@@ -31,7 +31,7 @@ class DSLSpec extends PlaySpecification with Results {
 
   implicit val app = FakeApplication()
 
-  "ActionDSL" should {
+  "dsl" should {
 
     "properly promote Future[A] to Step[A]" in {
       val successfulFuture = Future.successful(42)
@@ -133,6 +133,36 @@ class DSLSpec extends PlaySpecification with Results {
 
       contentAsString(result) must contain("foo")
       
+    }
+
+    "support filtering in for-comprehensions" in {
+      val someValueSatisfyingPredicate: Future[Option[Int]] = Future.successful(Some(20))
+
+      val res1 = for {
+        a <- someValueSatisfyingPredicate ?| NotFound if a < 42
+      } yield Ok
+
+      status(res1.run.map(_.merge)) mustEqual 200
+
+      val noneValue: Future[Option[Int]] = Future.successful(None)
+
+
+      val res2 = for {
+        a <- noneValue ?| NotFound if a < 42
+      } yield Ok
+
+      status(res2.run.map(_.merge)) mustEqual 404
+
+
+      val someValueFailingPredicate = Future.successful(Some(64))
+
+      val res3 = for {
+        a <- someValueFailingPredicate ?| NotFound if a < 42
+      } yield Ok
+
+      await(res3.run) must throwA[NoSuchElementException]
+
+
     }
   }
 

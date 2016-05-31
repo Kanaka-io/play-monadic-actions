@@ -31,6 +31,8 @@ final case class Step[A](run: Future[Either[Result, A]]) {
 
   def withFilter(p: A => Boolean)(implicit ec: ExecutionContext): Step[A] = copy(run = run.filter {
     case Right(a) if p(a) => true
+    case Left(e) => true
+    case _ => false
   })
 
 }
