@@ -5,88 +5,161 @@ Play monadic actions
 
 This little play module provides some syntactic sugar that allows boilerplate-free Actions using for-comprehensions.
 
-The [slides](https://kanaka-io.github.io/play-monadic-actions/index.html) (in french) explain in greater detail the problem
- that this project addresses, and how to use the solution in your own projects.
+## Motivation
+
+It is commonly admitted that controllers should be lean and only focus on parsing an incoming HTTP request, call (possibly many) service methods and finally build an HTTP response (preferably with a proper status). In the context of an asynchronous framework like Play!, most of these operations results are (or can be) wrapped in a `Future`, and since their outcome can be either positive or negative, these results have a type that is more or less isomorphic to `Future[Either[X, Y]]`. 
+ 
+This matter of facts raises some readability issues. Consider for example the following action : 
+
+~~~scala
+class ExampleController extends Controller {
+  
+  val beerOrderForm: Form[BeerOrder] = ???
+  def findAdultUser(id: String): Future[Either[UnderageError, User]] = ???
+  def sellBeer(beerName: String, customer: User): Future[Either[OutOfStockError, Beer]] = ???
+  
+  def orderBeer() = Action.async {
+     beerOrderForm.bindFromRequest().fold(
+       formWithErrors => BadRequest(views.html.orderBeer(formWithErrors),
+       beerOrder => 
+        findAdultUser(beerOrder.userId).map(
+          _.fold(
+            ue => Conflict(displayError(ue)),
+            user => 
+              sellBeer(beerOrder.beerName, user).map(
+                _.fold(
+                  oose => NotFound(displayError(oose)),
+                  beer => Ok(displayBeer(beer)  
+                )
+              )    
+          )
+        )
+  }
+}
+~~~
+
+This is pretty straightforward, and yet the different *steps* of the computation are not made very clear. And since I've typed this in a regular text editor with no syntax highlighting nor static code analysis, there is an obvious error that you may not have spotted (there's a `map` instead of a `flatMap` somewhere). 
+
+This library addresses this problem by defining a `Step[A]` monad, which is roughly a `Future[Either[Result, A]]`, but with a right bias on the `Either` part, and providing a little DSL to lift relevant types into this monad's context.
+
+Using it, the previous example becomes :
+
+~~~scala
+import io.kanaka.monadic.dsl._
+
+// don't forget to import an implicit ExecutionContext
+import play.api.libs.concurrent.Execution.Implicits.defaultContext 
+
+class ExampleController extends Controller {
+  
+  val beerOrderForm: Form[BeerOrder] = ???
+  def findAdultUser(id: String): Future[Either[UnderageError, User]] = ???
+  def sellBeer(beerName: String, customer: User): Future[Either[OutOfStockError, Beer]] = ???
+  
+  def orderBeer() = Action.async {
+    for {
+      beerOrder <- beerOrderForm.bindFromRequest()    ?| (formWithErrors => BadRequest(views.html.orderBeer(formWithErrors))
+      user      <- findAdultUser(beerOrder.userId)    ?| (ue => Conflict(displayError(ue))
+      beer      <- sellBeer(beerOrder.beerName, user) ?| (oose => NotFound(displayError(oose))  
+    } yield Ok(displayBeer(beer))
+  }
+}
+~~~
+
+**IMPORTANT NOTE** : one **MUST** provide an implicit `ExecutionContext` for the DSL to work
+
+## How it works
+
+The DSL introduces the binary `?|` operator. The happy path goes on the left hand side of the operator and the error path goes on the right : `happy ?| error`. Such expression produces a `Step[A]` which has all the required methods to make it usable in a for-comprehension. 
+
+So for example, if a service methods `foo`returns a `Future[Option[A]]`, we assume the happy path to be the case where the `Future` successes with a `Some[A]` and the error path to be the case where it successes with a `None` (the case where the `Future` fails is already taken care of by play's error handler). So we need to provide a proper `Result` to be returned in the error case (most probably a `NotFound`) and then we can write  
+
+~~~scala
+for {
+ // ...
+ a <- foo ?| NotFound    
+ // ...
+} yield {
+ // ...
+}
+~~~
+
+The `a` here would be of type `A`, meaning that we've extracted the meaningful value from the `Future[Option[A]]` return by `foo`.
+Of course, if `foo` returns a `Future[None]` the for-comprehension is not evaluated further, and returns `NotFound`.
+
+The right hand side of the `?|` operator (the error management part) is a function (or a thunk) that must return a `Result` and whose input type depends of the type of the expression on the left hand side of the operator (see the table of supported conversions below).
+
+## Filtering and Pattern-matching
+
+`Step[_]` defines a `withFilter` method, which means that one can use pattern matching and filtering in for-comprehensions involving `Step[_]`.
+
+For example, if `bar` is of type `Future[Option[(Int, String)]]`, one can write 
+
+~~~scala
+for {
+ (i, s) <- bar ?| NotFound if s.length >= i
+} yield Ok(s.take(i))
+~~~
+
+Please note though that in the case where the predicate `s.length >= i` does not hold, the whole `Future` will fail with a `NoSuchElementException`, and there is no easy way to transform this failure into a user-specified `Result`.
+
+## Supported conversions
+
+The DSL supports the following conversions : 
+
+| Defining module | Source type | Type of the right hand side | Type of the extracted value |
+| --- | --- | --- | --- |
+| `play-monadic-actions` | `Boolean` | `=> Result` | `Unit` | 
+| `play-monadic-actions` | `Option[A]` | `=> Result` | `A` |
+| `play-monadic-actions` | `Try[A]` | `Throwable => Result` | `A` |
+| `play-monadic-actions` | `Either[B, A]` | `B => Result` | `A` |
+| `play-monadic-actions` | `Form[A]` | `Form[A] => Result` | `A` |
+| `play-monadic-actions` | `JsResult[A]` | `Seq[(JsPath, Seq[ValidationError])] => Result`| `A` |
+| `play-monadic-actions` | `Future[A]` | `Throwable => Result` | `A` |
+| `play-monadic-actions` | `Future[Boolean]` | `=> Result` | `Unit` |
+| `play-monadic-actions` | `Future[Option[A]]` | `=> Result` | `A` |
+| `play-monadic-actions` | `Future[Either[B, A]]` | `B => Result` | `A` |
+| `play-monadic-actions-cats` | `B Xor A` | `B => Result` | `A` |
+| `play-monadic-actions-cats` | `Future[B Xor A]` | `B => Result` | `A` |
+| `play-monadic-actions-cats` | `Validated[B Xor A]` | `B => Result` | `A` |
+| `play-monadic-actions-cats` | `Future[Validated[B Xor A]]` | `B => Result` | `A` |
+| `play-monadic-actions-scalaz-7-1`  | `B \/ A` |  `B => Result` | `A` |
+| `play-monadic-actions-scalaz-7-1` | `Future[B \/ A]` |  `B => Result` | `A` |
+| `play-monadic-actions-scalaz-7-1` | `Validation[B, A]` |  `B => Result` | `A` |
+| `play-monadic-actions-scalaz-7-1` | `Future[Validation[B, A]]` |  `B => Result` | `A` |
+| `play-monadic-actions-scalaz-7-2` | `B \/ A` |  `B => Result` | `A` |
+| `play-monadic-actions-scalaz-7-2` | `Future[B \/ A]` |  `B => Result` | `A` |
+| `play-monadic-actions-scalaz-7-2` | `Validation[B, A]` |  `B => Result` | `A` |
+| `play-monadic-actions-scalaz-7-2` | `Future[Validation[B, A]]` |  `B => Result` | `A` |
+
 
 ## Installation
 
 Using sbt :
 
-Last version is 1.1.0
+Current version is 2.0.0
 ~~~scala
-libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "1.1.0"
+libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "2.0.0"
 ~~~
 
+There are also contrib modules for interoperability with scalaz and cats : 
+
+|module name|is compatible with|
+| --- | --- |
+|play-monadic-actions-cats| cats 0.4.1|
+|play-monadic-actions-scalaz-7-1| scalaz 7.1.8|
+|play-monadic-actions-scalaz-7-2| scalaz 7.2.3|
+
+Each of these module provides `Functor` and `Monad` instances for `Step[_]` as well as conversions for relevant types in the target library 
+
+These instances and conversions are made available by importing `io.kanaka.monadic.dsl.compat.cats._` and `io.kanaka.monadic.dsl.compat.scalaz._` respectively.
+ 
 ## Compatibility
 
-- Version `1.0.1` is compatible with Play! `2.3.x`
+- Version `2.0.0` is compatible with Play! `2.5.x`
 - Version `1.1.0` is compatible with Play! `2.4.x`
+- Version `1.0.1` is compatible with Play! `2.3.x`
 
-## Usage
-
-The DSL adds the `?|` operator to most of the types one could normally encounter in an action
-(such as `Future[A]`, `Future[Option[A]]`, `Either[B,A]`, etc...). Given a function (or thunk) that transforms the error case in `Result`,
-the `?|` operator will return an `EitherT[Future, Result, A]` (which is aliased to `Step[A]` for convenience)
-enabling the writing of the whole action as a single for-comprehension.
-
-~~~scala
-package controllers
-
-import ActionDSL.MonadicAction
-object TestController extends Controller with MonadicActions {
-
-  implicit val StatusUpdateFormat = Json.format[StatusUpdate]
-
-  def action1(userId: String) = Action.async(parse.json) {
-    request =>
-      for {
-        su   <- request.body.validate[StatusUpdate] ?| BadRequest(JsError.toFlatJson(_:ActionDSL.JsErrorContent))
-        user <- SomeService.findUser(userId)        ?| NotFound
-        _    <- SomeService.performUpdate(user, su) ?| Conflict
-      } yield NoContent
-  }
-}
-~~~
-
-## Caveats
-
-### ExecutionContext
-
-For compatibility reasons, play-monadic-actions depends on scalaz version 7.0.6 that does not provide `Monad` or `Functor` instances for `scala.concurrent.Future`.
-Therefore, those instances have to be provided locally. To be able to use `map` on `Future`s and than provide those instances, an `ExecutionContext` must be selected.
-In order to keep the DSL simple and yet allow one to use a specific `ExecutionContext`, `Monad[Future]` and `Functor[Future]` instances are defined as `val`s inside
-trait `MonadicActions` (meaning that each controller extending `MonadicActions` has its own version of theses instances). These instances explicitly use the value of
-the the local val `executionContext` that defaults to `play.api.libs.concurrent.Execution.defaultContext`. One can thus override this field on a controller to use another
-execution context.
-
-### Filtering / Pattern matching in for-comprehensions
-
-Similarly, a `Monoid[Result]` instance is required to enable filtering/pattern-matching in for-comprehensions on `EitherT[Future, Result, X]`. The problem is that
-`Result` doesn't really have a monoidal structure. The provided instance will systematically yield an `InternalServerError` when a filter predicate does not hold
-or if an extracted value does not match the specified pattern. Therefore, this feature should be used with caution. For example the following :
-
-~~~scala
-def changePassword() = Action.async {
-  implicit request =>
-    for {
-      (password, confirmation) <- passwordForm.bindFromRequest ?| (formWithErrors => BadRequest(formWithErrors.errorsAsJson)
-      _ <- (password == confirmation) ?| BadRequest("the two passwords must match")
-    } yield Ok
-}
-~~~
-
-is preferable to the more straightforward :
-
-~~~scala
-def changePassword() = Action.async {
-  implicit request =>
-    for {
-      (password, confirmation) <- passwordForm.bindFromRequest ?| (formWithErrors => BadRequest(formWithErrors.errorsAsJson) if password == confirmation
-    } yield Ok
-}
-~~~
-
-which would yield an `InternalServerError` if the two passwords don't match.
 
 ## Contributors
 
