@@ -139,7 +139,7 @@ Using sbt :
 
 Current version is 2.0.0
 ~~~scala
-libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "2.0.0"
+libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "2.0.0-RC1"
 ~~~
 
 There are also contrib modules for interoperability with scalaz and cats : 
@@ -156,7 +156,7 @@ These instances and conversions are made available by importing `io.kanaka.monad
  
 ## Compatibility
 
-- Version `2.0.0` is compatible with Play! `2.5.x`
+- Version `2.0.0-RC1` is compatible with Play! `2.5.x`
 - Version `1.1.0` is compatible with Play! `2.4.x`
 - Version `1.0.1` is compatible with Play! `2.3.x`
 
