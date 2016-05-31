@@ -36,9 +36,9 @@ lazy val core = (project in file("core")).enablePlugins(PlayScala)
   .settings(commonSettings:_*)
   .settings(name := "play-monadic-actions")
 
-lazy val scalaz71 = scalazCompatModule(id = "scalaz71", moduleName = "play-monadic-actions-scalaz_7.1", scalazVersion = "7.1.0")
+lazy val scalaz71 = scalazCompatModule(id = "scalaz71", moduleName = "play-monadic-actions-scalaz_7.1", scalazVersion = "7.1.8")
 
-lazy val scalaz72 = scalazCompatModule(id = "scalaz72", moduleName = "play-monadic-actions-scalaz_7.2", scalazVersion = "7.2.0")
+lazy val scalaz72 = scalazCompatModule(id = "scalaz72", moduleName = "play-monadic-actions-scalaz_7.2", scalazVersion = "7.2.3")
 
 lazy val cats = (project in file("cats"))
   .settings(commonSettings:_*)
