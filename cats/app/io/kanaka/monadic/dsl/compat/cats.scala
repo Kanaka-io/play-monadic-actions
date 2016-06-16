@@ -15,8 +15,9 @@
  */
 package io.kanaka.monadic.dsl.compat
 
+import _root_.cats.data.{Validated, Xor, XorT}
+import _root_.cats.std.future._
 import _root_.cats.{Functor, Monad}
-import _root_.cats.data.{Validated, Xor}
 import io.kanaka.monadic.dsl.{Step, StepOps}
 import play.api.mvc.Result
 
@@ -38,6 +39,10 @@ trait CatsToStepOps {
 
   implicit def futureXorToStep[A, B](futureXor: Future[B Xor A])(implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
     override def orFailWith(failureHandler: (B) => Result): Step[A] = Step(futureXor.map(_.leftMap(failureHandler).toEither))
+  }
+
+  implicit def xortFutureToStep[A, B](xortFuture: XorT[Future, B, A])(implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
+    override def orFailWith(failureHandler: (B) => Result): Step[A] = Step(xortFuture.leftMap(failureHandler).toEither)
   }
 
   implicit def futureValidatedToStep[A, B](futureValidated: Future[Validated[B, A]])(implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
