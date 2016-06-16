@@ -15,7 +15,7 @@
  */
 package io.kanaka.monadic.dsl
 
-import cats.data.{Validated, Xor, XorT}
+import cats.data.{OptionT, Validated, Xor, XorT}
 import cats.std.future._
 import io.kanaka.monadic.dsl.compat.cats._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -55,6 +55,14 @@ class CatsStepOpsSpec extends PlaySpecification with Results {
 
       val futureLeft: XorT[Future, String, Unit] = XorT.fromXor[Future](Xor.left("Error"))
       await((futureLeft ?| NotFound).run) mustEqual Left(NotFound)
+    }
+
+    "properly promote OptionT[Future, A] to Step[A]" in {
+      val optiontFutureRight: OptionT[Future, Int] = OptionT.fromOption[Future](Option(42))
+      await((optiontFutureRight ?| NotFound).run) mustEqual Right(42)
+
+      val optiontFutureLeft: OptionT[Future, Unit] = OptionT.fromOption[Future](None)
+      await((optiontFutureLeft ?| NotFound).run) mustEqual Left(NotFound)
     }
 
     "properly promote Validated[B,A] to Step[A]" in {
