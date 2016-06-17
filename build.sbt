@@ -44,7 +44,7 @@ lazy val cats = (project in file("cats"))
   .settings(commonSettings:_*)
   .settings(
     name := "play-monadic-actions-cats",
-    libraryDependencies ++= Seq("org.typelevel" %% "cats" % "0.4.1")
+    libraryDependencies ++= Seq("org.typelevel" %% "cats" % "0.6.0")
   )
   .dependsOn(core)
   .enablePlugins(PlayScala)
