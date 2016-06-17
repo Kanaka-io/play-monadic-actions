@@ -15,8 +15,9 @@
  */
 package io.kanaka.monadic.dsl
 
-import cats.data.{Validated, Xor}
-import compat.cats._
+import cats.data.{OptionT, Validated, Xor, XorT}
+import cats.std.future._
+import io.kanaka.monadic.dsl.compat.cats._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Results
 import play.api.test.{FakeApplication, PlaySpecification}
@@ -41,13 +42,28 @@ class CatsStepOpsSpec extends PlaySpecification with Results {
     }
 
     "properly promote Future[B Xor A] to Step[A]" in {
-      val futureRight = Future.successful(Xor.right(42))
+      val futureRight: Future[Xor[Nothing, Int]] = Future.successful(Xor.right(42))
       await((futureRight ?| NotFound).run) mustEqual Right(42)
 
       val futureLeft = Future.successful(Xor.left("Error"))
       await((futureLeft ?| NotFound).run) mustEqual Left(NotFound)
     }
 
+    "properly promote XorT[Future, B, A] to Step[A]" in {
+      val xortFutureRight: XorT[Future, Unit, Int] = XorT.fromXor[Future](Xor.right(42))
+      await((xortFutureRight ?| NotFound).run) mustEqual Right(42)
+
+      val futureLeft: XorT[Future, String, Unit] = XorT.fromXor[Future](Xor.left("Error"))
+      await((futureLeft ?| NotFound).run) mustEqual Left(NotFound)
+    }
+
+    "properly promote OptionT[Future, A] to Step[A]" in {
+      val optiontFutureRight: OptionT[Future, Int] = OptionT.fromOption[Future](Option(42))
+      await((optiontFutureRight ?| NotFound).run) mustEqual Right(42)
+
+      val optiontFutureLeft: OptionT[Future, Unit] = OptionT.fromOption[Future](None)
+      await((optiontFutureLeft ?| NotFound).run) mustEqual Left(NotFound)
+    }
 
     "properly promote Validated[B,A] to Step[A]" in {
       val valid = Validated.Valid(42)
@@ -65,7 +81,5 @@ class CatsStepOpsSpec extends PlaySpecification with Results {
       val fail:Future[Validated[String, Int]] = Future.successful(Validated.Invalid("Error"))
       await((fail ?| NotFound).run) mustEqual Left(NotFound)
     }
-
-
   }
 }
