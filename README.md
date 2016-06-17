@@ -121,6 +121,8 @@ The DSL supports the following conversions :
 | `play-monadic-actions` | `Future[Either[B, A]]` | `B => Result` | `A` |
 | `play-monadic-actions-cats` | `B Xor A` | `B => Result` | `A` |
 | `play-monadic-actions-cats` | `Future[B Xor A]` | `B => Result` | `A` |
+| `play-monadic-actions-cats` | `XorT[Future, B, A]` | `B => Result` | `A` |
+| `play-monadic-actions-cats` | `OptionT[Future, A]` | `=> Result` | `A` |
 | `play-monadic-actions-cats` | `Validated[B Xor A]` | `B => Result` | `A` |
 | `play-monadic-actions-cats` | `Future[Validated[B Xor A]]` | `B => Result` | `A` |
 | `play-monadic-actions-scalaz-7-1`  | `B \/ A` |  `B => Result` | `A` |
@@ -168,6 +170,8 @@ These instances and conversions are made available by importing `io.kanaka.monad
 [Damien Gouyette](https://twitter.com/cestpasdur)
 
 [David R. Bild](https://github.com/drbild)
+
+[Bjørn Madsen](https://github.com/aeons)
 
 ... your name here
 
