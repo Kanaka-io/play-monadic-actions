@@ -148,7 +148,7 @@ There are also contrib modules for interoperability with scalaz and cats :
 
 |module name|is compatible with|
 | --- | --- |
-|play-monadic-actions-cats| cats 0.4.1|
+|play-monadic-actions-cats| cats 0.6.0|
 |play-monadic-actions-scalaz-7-1| scalaz 7.1.8|
 |play-monadic-actions-scalaz-7-2| scalaz 7.2.3|
 
