@@ -22,7 +22,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * @author Valentin Kasas
   */
-final case class Step[A](run: Future[Either[Result, A]]) {
+final case class Step[+A](run: Future[Either[Result, A]]) {
 
   def map[B](f : A => B)(implicit ec: ExecutionContext) = copy(run = run.map(_.right.map(f)))
 
