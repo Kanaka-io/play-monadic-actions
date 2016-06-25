@@ -173,6 +173,8 @@ These instances and conversions are made available by importing `io.kanaka.monad
 
 [Bjørn Madsen](https://github.com/aeons)
 
+[Christophe Calves](https://github.com/christophe-calves)
+
 ... your name here
 
 ## Credits
