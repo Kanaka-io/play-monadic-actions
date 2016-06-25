@@ -23,7 +23,9 @@ import compat.scalaz._
 
 import scala.concurrent.Future
 import scalaz.syntax.either._
+import scalaz.syntax.std.option._
 import scalaz.syntax.validation._
+import scalaz.std.scalaFuture._
 
 /**
  * @author Valentin Kasas
@@ -37,21 +39,36 @@ class ScalazStepOpsSpec extends PlaySpecification with Results {
   "ActionDSL.scalaz" should {
 
     "properly promote B \\/ A to Step[A]" in {
-      val aRight: String \/ Int = 42.right
+      val aRight = 42.right[String]
       await((aRight ?| NotFound).run) mustEqual Right(42)
 
-      val aLeft = "Error".left
+      val aLeft = "Error".left[Int]
       await((aLeft ?| NotFound).run) mustEqual Left(NotFound)
     }
 
     "properly promote Future[B \\/ A] to Step[A]" in {
-      val futureRight = Future.successful(42.right)
+      val futureRight = Future.successful(42.right[String])
       await((futureRight ?| NotFound).run) mustEqual Right(42)
 
-      val futureLeft = Future.successful("Error".left)
+      val futureLeft = Future.successful("Error".left[Int])
       await((futureLeft ?| NotFound).run) mustEqual Left(NotFound)
     }
 
+    "properly promote EitherT[Future, B, A] to Step[A]" in {
+      val eitherTRight = EitherT(Future.successful(42.right[String]))
+      await((eitherTRight ?| NotFound).run) mustEqual Right(42)
+
+      val eitherTLeft = EitherT(Future.successful("Error".left[Int]))
+      await((eitherTLeft ?| NotFound).run) mustEqual Left(NotFound)
+    }
+
+    "properly promote OptionT[Future, A] to Step[A]" in {
+      val someT = OptionT(Future.successful(42.some))
+      await((someT ?| NotFound).run) mustEqual Right(42)
+
+      val noneT = OptionT.none[Future,Int]
+      await((noneT ?| NotFound).run) mustEqual Left(NotFound)
+    }
 
     "properly promote Validation[B,A] to Step[A]" in {
       val valid = 42.success[String]

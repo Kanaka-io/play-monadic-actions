@@ -17,14 +17,21 @@ package io.kanaka.monadic.dsl.compat
 
 import io.kanaka.monadic.dsl.{Step, StepOps}
 import play.api.mvc.Result
-import _root_.scalaz.{\/, Validation, Functor, Monad}
 
+import _root_.scalaz.{EitherT, Functor, Monad, Validation, \/, OptionT}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 /**
   * @author Valentin Kasas
   */
 trait ScalazToStepOps {
+
+  // We could use `scalaz.std.scalaFuture.futureInstance` here, but doing so seems to mess things up in scalaz 7.1.x
+  // preventing us to use the same code for 7.1.x and 7.2.x.
+  // We must use this explicitly though, in order to not mess with our client's implicit scope
+  private [this] def futureFunctor(implicit ec: ExecutionContext): Functor[Future] = new Functor[Future] {
+    override def map[A, B](fa: Future[A])(f: (A) => B): Future[B] = fa map f
+  }
 
   implicit def disjunctionToStep[A, B](disjunction: B \/ A)(implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
     override def orFailWith(failureHandler: (B) => Result): Step[A] = Step(Future.successful(disjunction.leftMap(failureHandler).toEither))
@@ -34,6 +41,14 @@ trait ScalazToStepOps {
     override def orFailWith(failureHandler: (B) => Result): Step[A] = Step(Future.successful(validation.fold(failureHandler andThen Left.apply, Right.apply)))
   }
 
+  implicit def eithertFutureToStep[A, B](eithertFuture: EitherT[Future, B, A])(implicit ec: ExecutionContext) = new StepOps[A, B] {
+    private [this] val functor = futureFunctor(ec)
+    override def orFailWith(failureHandler: (B) => Result): Step[A] = Step(eithertFuture.leftMap(failureHandler)(functor).toEither(functor))
+  }
+
+  implicit def optiontFutureToStep[A](optiontFuture: OptionT[Future, A])(implicit ec: ExecutionContext) = new StepOps[A, Unit] {
+    override def orFailWith(failureHandler: (Unit) => Result): Step[A] = Step(optiontFuture.fold(Right(_), Left(failureHandler(())))(futureFunctor))
+  }
   implicit def futureDisjunctionToStep[A, B](futureDisj: Future[B \/ A])(implicit ec: ExecutionContext) = new StepOps[A, B] {
     override def orFailWith(failureHandler: (B) => Result): Step[A] = Step(futureDisj.map(_.leftMap(failureHandler).toEither))
   }

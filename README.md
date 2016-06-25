@@ -128,10 +128,14 @@ The DSL supports the following conversions :
 | `play-monadic-actions-scalaz-7-1`  | `B \/ A` |  `B => Result` | `A` |
 | `play-monadic-actions-scalaz-7-1` | `Future[B \/ A]` |  `B => Result` | `A` |
 | `play-monadic-actions-scalaz-7-1` | `Validation[B, A]` |  `B => Result` | `A` |
+| `play-monadic-actions-scalaz-7-1` | `EitherT[Future, B, A]` |  `B => Result` | `A` |
+| `play-monadic-actions-scalaz-7-1` | `OptionT[Future, A]` |  `Unit => Result` | `A` |
 | `play-monadic-actions-scalaz-7-1` | `Future[Validation[B, A]]` |  `B => Result` | `A` |
 | `play-monadic-actions-scalaz-7-2` | `B \/ A` |  `B => Result` | `A` |
 | `play-monadic-actions-scalaz-7-2` | `Future[B \/ A]` |  `B => Result` | `A` |
 | `play-monadic-actions-scalaz-7-2` | `Validation[B, A]` |  `B => Result` | `A` |
+| `play-monadic-actions-scalaz-7-2` | `EitherT[Future, B, A]` |  `B => Result` | `A` |
+| `play-monadic-actions-scalaz-7-2` | `OptionT[Future, A]` |  `Unit => Result` | `A` |
 | `play-monadic-actions-scalaz-7-2` | `Future[Validation[B, A]]` |  `B => Result` | `A` |
 
 
