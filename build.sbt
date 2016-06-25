@@ -8,7 +8,7 @@ licenses in ThisBuild += ("Apache2", url("http://www.apache.org/licenses/LICENSE
 
 homepage in ThisBuild := Some(url("https://github.com/Kanaka-io/play-monadic-actions"))
 
-version in ThisBuild := "2.0.0-SNAPSHOT"
+version in ThisBuild := "2.0.0-RC2"
 
 val commonSettings = Seq (
   resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
