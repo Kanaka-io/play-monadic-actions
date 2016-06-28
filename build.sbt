@@ -13,12 +13,14 @@ version in ThisBuild := "2.0.0-SNAPSHOT"
 val commonSettings = Seq (
   resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   libraryDependencies ++= Seq(
+    "com.typesafe.play" %% "play" % "2.5.3",
+    "com.typesafe.play" %% "play-test" % "2.5.3" % "test",
     "org.scalacheck" %% "scalacheck" % "1.13.0" % "test",
     "org.specs2" %% "specs2-core" % "3.7" % "test",
     "org.specs2" %% "specs2-junit" % "3.7" % "test",
     "com.typesafe.play" %% "play-specs2" % "2.4.6" % "test" excludeAll ExclusionRule(organization = "org.specs2")
-
   )
+
 )
 
 def scalazCompatModuleSettings(moduleName: String, base: String, scalazVersion: String) = commonSettings ++ Seq(
@@ -30,9 +32,8 @@ def scalazCompatModuleSettings(moduleName: String, base: String, scalazVersion: 
 def scalazCompatModule(id: String, moduleName: String, scalazVersion: String) = Project(id = id, base = file("scalaz"))
   .settings(scalazCompatModuleSettings(moduleName, id, scalazVersion):_*)
   .dependsOn(core)
-  .enablePlugins(PlayScala)
 
-lazy val core = (project in file("core")).enablePlugins(PlayScala)
+lazy val core = (project in file("core"))
   .settings(commonSettings:_*)
   .settings(name := "play-monadic-actions")
 
@@ -47,7 +48,6 @@ lazy val cats = (project in file("cats"))
     libraryDependencies ++= Seq("org.typelevel" %% "cats" % "0.6.0")
   )
   .dependsOn(core)
-  .enablePlugins(PlayScala)
 
 
 
