@@ -29,44 +29,62 @@ import scala.language.implicitConversions
   */
 trait CatsToStepOps {
 
-  implicit def xorToStep[A, B](xor: B Xor A)(implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
-    override def orFailWith(failureHandler: B => Result): Step[A] = Step(Future.successful(xor.leftMap(failureHandler).toEither))
+  implicit def xorToStep[A, B](xor: B Xor A)(
+      implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
+    override def orFailWith(failureHandler: B => Result): Step[A] =
+      Step(Future.successful(xor.leftMap(failureHandler).toEither))
   }
 
-  implicit def validatedToStep[A, B](validated: Validated[B, A])(implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
-    override def orFailWith(failureHandler: B => Result): Step[A] = Step(Future.successful(validated.leftMap(failureHandler).toEither))
+  implicit def validatedToStep[A, B](validated: Validated[B, A])(
+      implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
+    override def orFailWith(failureHandler: B => Result): Step[A] =
+      Step(Future.successful(validated.leftMap(failureHandler).toEither))
   }
 
-  implicit def futureXorToStep[A, B](futureXor: Future[B Xor A])(implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
-    override def orFailWith(failureHandler: B => Result): Step[A] = Step(futureXor.map(_.leftMap(failureHandler).toEither))
+  implicit def futureXorToStep[A, B](futureXor: Future[B Xor A])(
+      implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
+    override def orFailWith(failureHandler: B => Result): Step[A] =
+      Step(futureXor.map(_.leftMap(failureHandler).toEither))
   }
 
-  implicit def xortFutureToStep[A, B](xortFuture: XorT[Future, B, A])(implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
-    override def orFailWith(failureHandler: B => Result): Step[A] = Step(xortFuture.leftMap(failureHandler).toEither)
+  implicit def xortFutureToStep[A, B](xortFuture: XorT[Future, B, A])(
+      implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
+    override def orFailWith(failureHandler: B => Result): Step[A] =
+      Step(xortFuture.leftMap(failureHandler).toEither)
   }
 
-  implicit def optiontFutureToStep[A](optiontFuture: OptionT[Future, A])(implicit ec: ExecutionContext): StepOps[A, Unit] = new StepOps[A, Unit] {
-    override def orFailWith(failureHandler: Unit => Result): Step[A] =  Step(optiontFuture.cata[Either[Result, A]](Left(failureHandler(())), Right(_)))
+  implicit def optiontFutureToStep[A](optiontFuture: OptionT[Future, A])(
+      implicit ec: ExecutionContext): StepOps[A, Unit] = new StepOps[A, Unit] {
+    override def orFailWith(failureHandler: Unit => Result): Step[A] =
+      Step(
+          optiontFuture
+            .cata[Either[Result, A]](Left(failureHandler(())), Right(_)))
   }
 
-  implicit def futureValidatedToStep[A, B](futureValidated: Future[Validated[B, A]])(implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
-    override def orFailWith(failureHandler: B => Result): Step[A] = Step(futureValidated.map(_.leftMap(failureHandler).toEither)(ec))
+  implicit def futureValidatedToStep[A, B](
+      futureValidated: Future[Validated[B, A]])(
+      implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
+    override def orFailWith(failureHandler: B => Result): Step[A] =
+      Step(futureValidated.map(_.leftMap(failureHandler).toEither)(ec))
   }
 
 }
 
 trait CatsStepInstances {
 
-  implicit def stepFunctor(implicit ec: ExecutionContext): Functor[Step] = new Functor[Step] {
-    override def map[A, B](fa: Step[A])(f: (A) => B): Step[B] = fa map f
-  }
+  implicit def stepFunctor(implicit ec: ExecutionContext): Functor[Step] =
+    new Functor[Step] {
+      override def map[A, B](fa: Step[A])(f: (A) => B): Step[B] = fa map f
+    }
 
-  implicit def stepMonad(implicit ec: ExecutionContext): Monad[Step] = new Monad[Step] {
+  implicit def stepMonad(implicit ec: ExecutionContext): Monad[Step] =
+    new Monad[Step] {
 
-    override def flatMap[A, B](fa: Step[A])(f: (A) => Step[B]): Step[B] = fa flatMap f
+      override def flatMap[A, B](fa: Step[A])(f: (A) => Step[B]): Step[B] =
+        fa flatMap f
 
-    override def pure[A](x: A): Step[A] = Step.unit(x)
-  }
+      override def pure[A](x: A): Step[A] = Step.unit(x)
+    }
 
 }
 

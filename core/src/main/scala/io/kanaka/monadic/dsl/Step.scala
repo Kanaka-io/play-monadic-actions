@@ -24,16 +24,20 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 final case class Step[+A](run: Future[Either[Result, A]]) {
 
-  def map[B](f : A => B)(implicit ec: ExecutionContext) = copy(run = run.map(_.right.map(f)))
+  def map[B](f: A => B)(implicit ec: ExecutionContext) =
+    copy(run = run.map(_.right.map(f)))
 
   def flatMap[B](f: A => Step[B])(implicit ec: ExecutionContext) =
-    copy(run = run.flatMap(_.fold(err => Future.successful(Left[Result, B](err)), succ => f(succ).run)))
+    copy(run = run.flatMap(_.fold(err =>
+                  Future.successful(Left[Result, B](err)), succ =>
+                  f(succ).run)))
 
-  def withFilter(p: A => Boolean)(implicit ec: ExecutionContext): Step[A] = copy(run = run.filter {
-    case Right(a) if p(a) => true
-    case Left(e) => true
-    case _ => false
-  })
+  def withFilter(p: A => Boolean)(implicit ec: ExecutionContext): Step[A] =
+    copy(run = run.filter {
+      case Right(a) if p(a) => true
+      case Left(e) => true
+      case _ => false
+    })
 
 }
 
@@ -43,9 +47,8 @@ object Step {
 
 }
 
-
 trait StepOps[A, B] {
-  def orFailWith(failureHandler: B => Result):Step[A]
+  def orFailWith(failureHandler: B => Result): Step[A]
   def ?|(failureHandler: B => Result): Step[A] = orFailWith(failureHandler)
   def ?|(failureThunk: => Result): Step[A] = orFailWith(_ => failureThunk)
 }
