@@ -10,6 +10,14 @@ homepage in ThisBuild := Some(url("https://github.com/Kanaka-io/play-monadic-act
 
 version in ThisBuild := "2.0.0-SNAPSHOT"
 
+scalacOptions in ThisBuild ++= Seq(
+  "-unchecked",
+  "-deprecation",
+  "-feature",
+  "-encoding", "utf8",
+  "-Xfatal-warnings"
+)
+
 val commonSettings = Seq (
   resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   libraryDependencies ++= Seq(
@@ -17,7 +25,6 @@ val commonSettings = Seq (
     "com.typesafe.play" %% "play-test" % "2.5.3" % "test",
     "org.scalacheck" %% "scalacheck" % "1.13.0" % "test",
     "org.specs2" %% "specs2-core" % "3.7" % "test",
-    "org.specs2" %% "specs2-junit" % "3.7" % "test",
     "com.typesafe.play" %% "play-specs2" % "2.4.6" % "test" excludeAll ExclusionRule(organization = "org.specs2")
   )
 
