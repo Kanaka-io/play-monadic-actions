@@ -1,7 +1,8 @@
 Play monadic actions
 ====================
 
-[![Build Status](https://travis-ci.org/Kanaka-io/play-monadic-actions.svg?branch=master)](https://travis-ci.org/Kanaka-io/play-monadic-actions) [![Gitter chat](https://badges.gitter.im/Kanaka-io/play-monadic-actions.png)](https://gitter.im/Kanaka-io/play-monadic-actions "Gitter chat") [![Coverage Status](https://coveralls.io/repos/github/Kanaka-io/play-monadic-actions/badge.svg?branch=master)](https://coveralls.io/github/Kanaka-io/play-monadic-actions?branch=master)
+[![Build Status](https://travis-ci.org/Kanaka-io/play-monadic-actions.svg?branch=master)](https://travis-ci.org/Kanaka-io/play-monadic-actions) [![Gitter chat](https://badges.gitter.im/Kanaka-io/play-monadic-actions.png)](https://gitter.im/Kanaka-io/play-monadic-actions "Gitter chat") [![Coverage Status](https://coveralls.io/repos/github/Kanaka-io/play-monadic-actions/badge.svg?branch=master)](https://coveralls.io/github/Kanaka-io/play-monadic-actions?branch=master) 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.kanaka/play-monadic-actions_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.kanaka/play-monadic-actions_2.11)
 
 This little play module provides some syntactic sugar that allows boilerplate-free Actions using for-comprehensions.
 
@@ -150,9 +151,9 @@ libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "2.0.0-RC2"
 
 There are also contrib modules for interoperability with scalaz and cats : 
 
-|module name|is compatible with|
+|module name|is compatible with / built against|
 | --- | --- |
-|play-monadic-actions-cats| cats 0.6.0|
+|play-monadic-actions-cats| cats 0.7.2|
 |play-monadic-actions-scalaz-7-1| scalaz 7.1.8|
 |play-monadic-actions-scalaz-7-2| scalaz 7.2.3|
 
@@ -162,10 +163,10 @@ These instances and conversions are made available by importing `io.kanaka.monad
  
 ## Compatibility
 
-- Version `2.0.0-RC2` is compatible with Play! `2.5.x`
 - Version `1.1.0` is compatible with Play! `2.4.x`
 - Version `1.0.1` is compatible with Play! `2.3.x`
 
+From version 2.0.0 up, dependencies toward play and cats are defined as `provided`, meaning that you can use the DSL along with any version of these projects you see fit. The two sample projects under `samples/` demonstrate this capability.
 
 ## Contributors
 
@@ -184,3 +185,5 @@ These instances and conversions are made available by importing `io.kanaka.monad
 ## Credits
 
 This project is widely inspired from the [play-monad-transformers activator template](https://github.com/lunatech-labs/play-monad-transformers#master) by Lunatech.
+
+It also uses [coursier](https://github.com/alexarchambault/coursier) to fetch dependencies in parallel, which is a pure bliss. Take a look if you don't know it yet. 
