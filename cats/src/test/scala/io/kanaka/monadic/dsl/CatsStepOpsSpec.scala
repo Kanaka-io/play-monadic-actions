@@ -16,7 +16,7 @@
 package io.kanaka.monadic.dsl
 
 import cats.data.{OptionT, Validated, Xor, XorT}
-import cats.std.future._
+import cats.instances.future._
 import io.kanaka.monadic.dsl.compat.cats._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Results

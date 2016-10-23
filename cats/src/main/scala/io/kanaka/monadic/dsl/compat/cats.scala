@@ -16,7 +16,7 @@
 package io.kanaka.monadic.dsl.compat
 
 import _root_.cats.data.{OptionT, Validated, Xor, XorT}
-import _root_.cats.std.future._
+import _root_.cats.instances.future._
 import _root_.cats.{Functor, Monad}
 import io.kanaka.monadic.dsl.{Step, StepOps}
 import play.api.mvc.Result
@@ -77,13 +77,16 @@ trait CatsStepInstances {
       override def map[A, B](fa: Step[A])(f: (A) => B): Step[B] = fa map f
     }
 
-  implicit def stepMonad(implicit ec: ExecutionContext): Monad[Step] =
+  implicit def stepMonad(implicit ec: ExecutionContext, futureMonad: Monad[Future]): Monad[Step] =
     new Monad[Step] {
 
       override def flatMap[A, B](fa: Step[A])(f: (A) => Step[B]): Step[B] =
         fa flatMap f
 
       override def pure[A](x: A): Step[A] = Step.unit(x)
+
+      override def tailRecM[A, B](a: A)(f: (A) => Step[Either[A, B]]): Step[B] =
+        defaultTailRecM(a)(f) // maybe not the best thing to do
     }
 
 }

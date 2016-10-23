@@ -21,7 +21,7 @@ scalacOptions in ThisBuild ++= Seq(
 val commonSettings = Seq (
   resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   libraryDependencies ++= Seq(
-    "com.typesafe.play" %% "play" % "2.5.3",
+    "com.typesafe.play" %% "play" % "2.5.3" % "provided",
     "com.typesafe.play" %% "play-test" % "2.5.3" % "test",
     "org.scalacheck" %% "scalacheck" % "1.13.0" % "test",
     "org.specs2" %% "specs2-core" % "3.7" % "test",
@@ -52,7 +52,7 @@ lazy val cats = (project in file("cats"))
   .settings(commonSettings:_*)
   .settings(
     name := "play-monadic-actions-cats",
-    libraryDependencies ++= Seq("org.typelevel" %% "cats" % "0.6.0")
+    libraryDependencies ++= Seq("org.typelevel" %% "cats" % "0.7.2" % "provided")
   )
   .dependsOn(core)
 
