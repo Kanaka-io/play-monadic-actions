@@ -146,7 +146,7 @@ Using sbt :
 
 Current version is 2.0.0
 ~~~scala
-libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "2.0.0-RC2"
+libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "2.0.0"
 ~~~
 
 There are also contrib modules for interoperability with scalaz and cats : 
