@@ -73,7 +73,7 @@ class ExampleController extends Controller {
 
 The DSL introduces the binary `?|` operator. The happy path goes on the left hand side of the operator and the error path goes on the right : `happy ?| error`. Such expression produces a `Step[A]` which has all the required methods to make it usable in a for-comprehension. 
 
-So for example, if a service methods `foo`returns a `Future[Option[A]]`, we assume the happy path to be the case where the `Future` successes with a `Some[A]` and the error path to be the case where it successes with a `None` (the case where the `Future` fails is already taken care of by play's error handler). So we need to provide a proper `Result` to be returned in the error case (most probably a `NotFound`) and then we can write  
+So for example, if a service methods `foo`returns a `Future[Option[A]]`, we assume the happy path to be the case where the `Future` succeeds with a `Some[A]` and the error path to be the case where it succeeds with a `None` (the case where the `Future` fails is already taken care of by play's error handler). So we need to provide a proper `Result` to be returned in the error case (most probably a `NotFound`) and then we can write  
 
 ~~~scala
 for {
