@@ -11,7 +11,7 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
-  "io.kanaka" %% "play-monadic-actions" % "2.0.0-RC2"
+  "io.kanaka" %% "play-monadic-actions" % "2.0.0"
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
