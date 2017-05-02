@@ -8,8 +8,6 @@ licenses in ThisBuild += ("Apache2", url("http://www.apache.org/licenses/LICENSE
 
 homepage in ThisBuild := Some(url("https://github.com/Kanaka-io/play-monadic-actions"))
 
-version in ThisBuild := "2.0.1-SNAPSHOT"
-
 scalacOptions in ThisBuild ++= Seq(
   "-unchecked",
   "-deprecation",
