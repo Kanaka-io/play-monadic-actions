@@ -180,6 +180,8 @@ From version 2.0.0 up, dependencies toward play and cats are defined as `provide
 
 [Christophe Calves](https://github.com/christophe-calves)
 
+[Maxim Karpov](https://github.com/makkarpov)
+
 ... your name here
 
 ## Credits

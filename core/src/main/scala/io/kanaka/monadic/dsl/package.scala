@@ -31,10 +31,15 @@ import scala.language.implicitConversions
   */
 package object dsl {
 
+  case object escalate
+
   type JsErrorContent = Seq[(JsPath, Seq[ValidationError])]
 
   implicit class FutureOps[A](future: Future[A])(implicit ec: ExecutionContext) {
+    @deprecated("Use infix `-| escalate` instead", "2.0.1")
     def -| : Step[A] = Step(future.map(Right(_)))
+
+    def -| (escalateWord: escalate.type): Step[A] = Step(future.map(Right(_)))
   }
 
   implicit def futureToStepOps[A](future: Future[A])(

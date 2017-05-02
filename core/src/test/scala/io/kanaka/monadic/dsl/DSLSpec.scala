@@ -39,6 +39,9 @@ class DSLSpec extends PlaySpecification with Results {
 
       val failedFuture = Future.failed[Int](new NullPointerException)
       await((failedFuture ?| NotFound).run) mustEqual Left(NotFound)
+
+      await((successfulFuture -| escalate).run) mustEqual Right(42)
+      await((failedFuture -| escalate).run) must throwA[NullPointerException]
     }
 
     "properly promote Future[Option[A]] to Step[A]" in {

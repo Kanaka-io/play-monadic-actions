@@ -34,7 +34,7 @@ object ExampleController extends Controller {
   def action(idStr: String) = Action.async {
     request =>
       for {
-        normed <- normalize(idStr)   .-|
+        normed <- normalize(idStr)    -| escalate
         id     <- Try(normed.toLong)  ?| BadRequest
         number <- service(id)         ?| NotFound
       } yield Ok(number.toString)
