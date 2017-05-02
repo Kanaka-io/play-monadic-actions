@@ -79,3 +79,5 @@ publishTo in ThisBuild := {
   else
     Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
+
+releasePublishArtifactsAction := com.typesafe.sbt.pgp.PgpKeys.publishSigned.value

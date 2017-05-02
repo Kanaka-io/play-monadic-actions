@@ -144,9 +144,9 @@ The DSL supports the following conversions :
 
 Using sbt :
 
-Current version is 2.0.0
+Current version is 2.0.1
 ~~~scala
-libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "2.0.0"
+libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "2.0.1"
 ~~~
 
 There are also contrib modules for interoperability with scalaz and cats : 
