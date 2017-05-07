@@ -5,3 +5,5 @@
 [David R. Bild](https://github.com/drbild)
 
 [Maxim Karpov](https://github.com/makkarpov)
+
+[Richard Searle](https://github.com/searler)

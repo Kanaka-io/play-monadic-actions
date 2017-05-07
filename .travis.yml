@@ -3,6 +3,8 @@
    - "2.11.7"
  jdk:
    - oraclejdk8
+ before_script:
+  - sudo chmod +x /usr/local/bin/sbt
  script:
    - sbt clean coverage test coverageReport &&
      sbt coverageAggregate

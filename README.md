@@ -182,6 +182,7 @@ From version 2.0.0 up, dependencies toward play and cats are defined as `provide
 
 [Maxim Karpov](https://github.com/makkarpov)
 
+[Richard Searle](https://github.com/searler)
 ... your name here
 
 ## Credits
