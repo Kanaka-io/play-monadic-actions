@@ -59,7 +59,7 @@ lazy val cats = (project in file("cats"))
 
 
 
-publishMavenStyle in ThisBuild := false
+publishMavenStyle in ThisBuild := true
 
 pomExtra in ThisBuild := <scm>
   <url>git@github.com:Kanaka-io/play-monadic-actions.git</url>
