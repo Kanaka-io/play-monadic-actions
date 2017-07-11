@@ -16,6 +16,9 @@ scalacOptions in ThisBuild ++= Seq(
   "-Xfatal-warnings"
 )
 
+crossScalaVersions := Seq("2.11.11", "2.12.2")
+
+
 val commonSettings = Seq (
   resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases",
   libraryDependencies ++= Seq(
@@ -56,7 +59,7 @@ lazy val cats = (project in file("cats"))
 
 
 
-publishMavenStyle in ThisBuild := true
+publishMavenStyle in ThisBuild := false
 
 pomExtra in ThisBuild := <scm>
   <url>git@github.com:Kanaka-io/play-monadic-actions.git</url>
