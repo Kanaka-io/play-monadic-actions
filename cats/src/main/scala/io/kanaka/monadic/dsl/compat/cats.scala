@@ -15,7 +15,7 @@
  */
 package io.kanaka.monadic.dsl.compat
 
-import _root_.cats.data.{OptionT, Validated, Xor, XorT}
+import _root_.cats.data.{OptionT, Validated}
 import _root_.cats.instances.future._
 import _root_.cats.{Functor, Monad}
 import io.kanaka.monadic.dsl.{Step, StepOps}
@@ -29,28 +29,10 @@ import scala.language.implicitConversions
   */
 trait CatsToStepOps {
 
-  implicit def xorToStep[A, B](xor: B Xor A)(
-      implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
-    override def orFailWith(failureHandler: B => Result): Step[A] =
-      Step(Future.successful(xor.leftMap(failureHandler).toEither))
-  }
-
   implicit def validatedToStep[A, B](validated: Validated[B, A])(
-      implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
+    implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
     override def orFailWith(failureHandler: B => Result): Step[A] =
       Step(Future.successful(validated.leftMap(failureHandler).toEither))
-  }
-
-  implicit def futureXorToStep[A, B](futureXor: Future[B Xor A])(
-      implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
-    override def orFailWith(failureHandler: B => Result): Step[A] =
-      Step(futureXor.map(_.leftMap(failureHandler).toEither))
-  }
-
-  implicit def xortFutureToStep[A, B](xortFuture: XorT[Future, B, A])(
-      implicit ec: ExecutionContext): StepOps[A, B] = new StepOps[A, B] {
-    override def orFailWith(failureHandler: B => Result): Step[A] =
-      Step(xortFuture.leftMap(failureHandler).toEither)
   }
 
   implicit def optiontFutureToStep[A](optiontFuture: OptionT[Future, A])(
@@ -86,7 +68,7 @@ trait CatsStepInstances {
       override def pure[A](x: A): Step[A] = Step.unit(x)
 
       override def tailRecM[A, B](a: A)(f: (A) => Step[Either[A, B]]): Step[B] =
-        defaultTailRecM(a)(f) // maybe not the best thing to do
+        tailRecM(a)(f) // maybe not the best thing to do
     }
 
 }

@@ -15,10 +15,9 @@
  */
 package io.kanaka.monadic.dsl
 
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.Results
-import play.api.test.{FakeApplication, PlaySpecification}
-
+import play.api.test.PlaySpecification
+import scala.concurrent.ExecutionContext.Implicits.global
 import compat.scalaz._
 
 import scala.concurrent.Future
@@ -34,7 +33,7 @@ class ScalazStepOpsSpec extends PlaySpecification with Results {
 
   import scalaz._
 
-  implicit val app = FakeApplication()
+  implicit val app = play.test.Helpers.fakeApplication()
 
   "ActionDSL.scalaz" should {
 

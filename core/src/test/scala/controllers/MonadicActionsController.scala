@@ -20,13 +20,13 @@ import javax.inject.Inject
 import io.kanaka.monadic.dsl._
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.mvc.{Action, Controller}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.mvc.InjectedController
+import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.i18n.Messages
 
 // the fact that this file compiles proves that https://github.com/Kanaka-io/play-monadic-actions/issues/1 is solved
 @Inject
-class MonadicActionsController(messages: Messages) extends Controller {
+class MonadicActionsController(messages: Messages) extends InjectedController {
 
   val twoFieldForm = Form(
     tuple("id" -> longNumber,

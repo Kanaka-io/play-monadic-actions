@@ -15,12 +15,13 @@
  */
 package io.kanaka.monadic.dsl
 
-import cats.data.{OptionT, Validated, Xor, XorT}
+import cats.data.{OptionT, Validated}
 import cats.instances.future._
 import io.kanaka.monadic.dsl.compat.cats._
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.mvc.Results
-import play.api.test.{FakeApplication, PlaySpecification}
+import play.api.test.PlaySpecification
+import play.test.Helpers
 
 import scala.concurrent.Future
 
@@ -29,33 +30,9 @@ import scala.concurrent.Future
   */
 class CatsStepOpsSpec extends PlaySpecification with Results {
 
-  implicit val app = FakeApplication()
+  implicit val app = Helpers.fakeApplication()
 
   "ActionDSL.cats" should {
-
-    "properly promote B Xor A to Step[A]" in {
-      val aRight: String Xor Int = Xor.right(42)
-      await((aRight ?| NotFound).run) mustEqual Right(42)
-
-      val aLeft: String Xor Int = Xor.left("Error")
-      await((aLeft ?| NotFound).run) mustEqual Left(NotFound)
-    }
-
-    "properly promote Future[B Xor A] to Step[A]" in {
-      val futureRight: Future[Xor[Nothing, Int]] = Future.successful(Xor.right(42))
-      await((futureRight ?| NotFound).run) mustEqual Right(42)
-
-      val futureLeft = Future.successful(Xor.left("Error"))
-      await((futureLeft ?| NotFound).run) mustEqual Left(NotFound)
-    }
-
-    "properly promote XorT[Future, B, A] to Step[A]" in {
-      val xortFutureRight: XorT[Future, Unit, Int] = XorT.fromXor[Future](Xor.right(42))
-      await((xortFutureRight ?| NotFound).run) mustEqual Right(42)
-
-      val futureLeft: XorT[Future, String, Unit] = XorT.fromXor[Future](Xor.left("Error"))
-      await((futureLeft ?| NotFound).run) mustEqual Left(NotFound)
-    }
 
     "properly promote OptionT[Future, A] to Step[A]" in {
       val optiontFutureRight: OptionT[Future, Int] = OptionT.fromOption[Future](Option(42))
