@@ -25,7 +25,8 @@ val commonSettings = Seq (
     "com.typesafe.play" %% "play" % "2.6.1" % "provided",
     "com.typesafe.play" %% "play-test" % "2.6.1" % "test",
     "org.scalacheck" %% "scalacheck" % "1.13.4" % "test",
-    "org.specs2" %% "specs2-core" % "3.9.2" % "test",
+    "org.specs2" %% "specs2-core" % "3.8.9" % "test",
+    "org.specs2" %% "specs2-scalacheck" % "3.8.9" % "test",
     "com.typesafe.play" % "play-specs2_2.12" % "2.6.1" % "test"
   )
 
