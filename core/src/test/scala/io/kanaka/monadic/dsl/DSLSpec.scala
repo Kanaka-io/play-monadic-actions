@@ -17,9 +17,11 @@ package io.kanaka.monadic.dsl
 
 import play.api.data.Form
 import play.api.data.Forms._
+import play.api.i18n._
 import play.api.libs.json.{JsError, JsSuccess}
 import play.api.mvc.{Result, Results}
-import play.api.test.{FakeApplication, PlaySpecification}
+import play.api.test.PlaySpecification
+import play.test.Helpers
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -29,7 +31,9 @@ import scala.util.{Failure, Success}
  */
 class DSLSpec extends PlaySpecification with Results {
 
-  implicit val app = FakeApplication()
+  implicit val app = Helpers.fakeApplication()
+
+  implicit val messages = MessagesImpl(Lang.defaultLang, new DefaultMessagesApi())
 
   "dsl" should {
 

@@ -15,16 +15,18 @@
  */
 package controllers
 
-import play.api.mvc.{Action, Controller}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import javax.inject.Inject
+
+import play.api.mvc.{BaseController, ControllerComponents}
+
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Try
-
 import io.kanaka.monadic.dsl._
 /**
   * @author Valentin Kasas
   */
-object ExampleController extends Controller {
+class ExampleController @Inject() (val controllerComponents: ControllerComponents) extends BaseController {
 
 
   def normalize(idStr: String) = Future.successful(idStr.trim)

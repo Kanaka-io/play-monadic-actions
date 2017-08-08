@@ -15,7 +15,6 @@
  */
 package io.kanaka.monadic
 
-import play.api.data.validation.ValidationError
 import play.api.libs.json.JsPath
 import play.api.mvc.Result
 import play.api.data.Form
@@ -33,7 +32,7 @@ package object dsl {
 
   case object escalate
 
-  type JsErrorContent = Seq[(JsPath, Seq[ValidationError])]
+  type JsErrorContent = Seq[(JsPath, Seq[play.api.libs.json.JsonValidationError])]
 
   implicit class FutureOps[A](future: Future[A])(implicit ec: ExecutionContext) {
     @deprecated("Use infix `-| escalate` instead", "2.0.1")
