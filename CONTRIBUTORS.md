@@ -7,3 +7,5 @@
 [Maxim Karpov](https://github.com/makkarpov)
 
 [Richard Searle](https://github.com/searler)
+
+[Andrew Adams](https://github.com/adamsar)
