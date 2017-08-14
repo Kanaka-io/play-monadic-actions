@@ -1,4 +1,4 @@
-scalaVersion in ThisBuild := "2.12.2"
+scalaVersion in ThisBuild := "2.12.3"
 
 organization in ThisBuild := "io.kanaka"
 
@@ -27,7 +27,7 @@ val commonSettings = Seq (
     "org.scalacheck" %% "scalacheck" % "1.13.5" % "test",
     "org.specs2" %% "specs2-core" % "3.9.4" % "test",
     "org.specs2" %% "specs2-scalacheck" % "3.9.4" % "test",
-    "com.typesafe.play" % "play-specs2_2.12" % "2.6.2" % "test"
+    "com.typesafe.play" %% "play-specs2" % "2.6.2" % "test" 
   )
 
 )
