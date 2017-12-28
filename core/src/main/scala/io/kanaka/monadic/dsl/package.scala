@@ -48,6 +48,13 @@ package object dsl {
         fromFuture(failureHandler)(future)
     }
 
+  implicit def fBooleanToStepOps(future: Future[Boolean])(
+    implicit ec: ExecutionContext): StepOps[Unit, Unit] =
+    new StepOps[Unit,Unit] {
+      override def orFailWith(failureHandler: Unit => Result) =
+        fromFBoolean(failureHandler(()))(future)
+    }
+
   implicit def fOptionToStepOps[A](fOption: Future[Option[A]])(
       implicit ec: ExecutionContext): StepOps[A, Unit] =
     new StepOps[A, Unit] {
@@ -118,6 +125,9 @@ package object dsl {
           case t: Throwable => Left[Result, A](onFailure(t))
         }
     )
+
+  private[dsl] def fromFBoolean(onFalse: => Result)(fBoolean: Future[Boolean])(implicit ec: ExecutionContext): Step[Unit] =
+    Step(run = fBoolean.map(b => if (b) Right[Result, Unit](()) else Left(onFalse)))
 
   private[dsl] def fromFOption[A](onNone: => Result)(
       fOption: Future[Option[A]])(implicit ec: ExecutionContext): Step[A] =
