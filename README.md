@@ -154,8 +154,8 @@ There are also contrib modules for interoperability with scalaz and cats :
 |module name|is compatible with / built against|
 | --- | --- |
 |play-monadic-actions-cats| cats 0.7.2|
-|play-monadic-actions-scalaz-7-1| scalaz 7.1.8|
-|play-monadic-actions-scalaz-7-2| scalaz 7.2.3|
+|play-monadic-actions-scalaz_7-1| scalaz 7.1.8|
+|play-monadic-actions-scalaz_7-2| scalaz 7.2.3|
 
 Each of these module provides `Functor` and `Monad` instances for `Step[_]` as well as conversions for relevant types in the target library 
 
