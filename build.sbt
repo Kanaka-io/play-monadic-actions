@@ -1,4 +1,4 @@
-scalaVersion in ThisBuild := "2.12.3"
+scalaVersion in ThisBuild := "2.12.8"
 
 organization in ThisBuild := "io.kanaka"
 
@@ -16,7 +16,7 @@ scalacOptions in ThisBuild ++= Seq(
   "-Xfatal-warnings"
 )
 
-crossScalaVersions := Seq("2.11.11", "2.12.3")
+crossScalaVersions := Seq("2.11.11", "2.12.8")
 
 
 val commonSettings = Seq (
@@ -55,7 +55,7 @@ lazy val cats = (project in file("cats"))
   .settings(
     name := "play-monadic-actions-cats",
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats" % "0.9.0" % "provided"
+      "org.typelevel" %% "cats-core" % "1.6.0" % "provided"
     )
   )
   .dependsOn(core % "compile->compile;test->test")
