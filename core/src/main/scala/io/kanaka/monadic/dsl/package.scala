@@ -32,7 +32,7 @@ package object dsl {
 
   case object escalate
 
-  type JsErrorContent = Seq[(JsPath, Seq[play.api.libs.json.JsonValidationError])]
+  type JsErrorContent = collection.Seq[(JsPath, collection.Seq[play.api.libs.json.JsonValidationError])]
 
   implicit class FutureOps[A](future: Future[A])(implicit ec: ExecutionContext) {
     @deprecated("Use infix `-| escalate` instead", "2.0.1")
