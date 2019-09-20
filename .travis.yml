@@ -1,6 +1,6 @@
  language: scala
  scala:
-   - "2.13.1"
+   - "2.13.0"
  jdk:
    - openjdk11
  before_script:

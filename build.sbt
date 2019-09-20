@@ -1,4 +1,4 @@
-scalaVersion in ThisBuild := "2.13.1"
+scalaVersion in ThisBuild := "2.13.0"
 
 organization in ThisBuild := "io.kanaka"
 
@@ -16,7 +16,7 @@ scalacOptions in ThisBuild ++= Seq(
   "-Xfatal-warnings"
 )
 
-crossScalaVersions := Seq("2.11.11", "2.12.8", "2.13.1")
+crossScalaVersions := Seq("2.11.11", "2.12.8", "2.13.0")
 
 
 val commonSettings = Seq (
