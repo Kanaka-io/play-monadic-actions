@@ -1,8 +1,8 @@
  language: scala
  scala:
-   - "2.11.7"
+   - "2.13.1"
  jdk:
-   - oraclejdk8
+   - openjdk11
  before_script:
   - sudo chmod +x /usr/local/bin/sbt
  script:
