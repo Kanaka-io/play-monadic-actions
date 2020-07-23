@@ -15,7 +15,7 @@
  */
 package io.kanaka.monadic.dsl
 
-import play.api.mvc.{Result, Results}
+import play.api.mvc.Result
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -25,7 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 final case class Step[+A](run: Future[Either[Result, A]]) {
 
   def map[B](f: A => B)(implicit ec: ExecutionContext) =
-    copy(run = run.map(_.right.map(f)))
+    copy(run = run.map(_.map(f)))
 
   def flatMap[B](f: A => Step[B])(implicit ec: ExecutionContext) =
     copy(run = run.flatMap(_.fold(err =>

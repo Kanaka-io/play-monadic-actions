@@ -144,18 +144,17 @@ The DSL supports the following conversions :
 
 Using sbt :
 
-Current version is 2.1.0
+Current version is 2.2.0
 ~~~scala
-libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "2.1.0"
+libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "2.2.0"
 ~~~
 
 There are also contrib modules for interoperability with scalaz and cats : 
 
 |module name|is compatible with / built against|
 | --- | --- |
-|play-monadic-actions-cats| cats 0.7.2|
-|play-monadic-actions-scalaz_7-1| scalaz 7.1.8|
-|play-monadic-actions-scalaz_7-2| scalaz 7.2.3|
+|play-monadic-actions-cats| cats 2.0.0|
+|play-monadic-actions-scalaz_7-2| scalaz 7.2.28|
 
 Each of these module provides `Functor` and `Monad` instances for `Step[_]` as well as conversions for relevant types in the target library 
 
@@ -163,6 +162,7 @@ These instances and conversions are made available by importing `io.kanaka.monad
  
 ## Compatibility
 
+- Version `2.2.0` is compatible with Play! `2.7.x`
 - Version `2.1.0` is compatible with Play! `2.6.x`
 - Version `2.0.0` is compatible with Play! `2.5.x`
 - Version `1.1.0` is compatible with Play! `2.4.x`

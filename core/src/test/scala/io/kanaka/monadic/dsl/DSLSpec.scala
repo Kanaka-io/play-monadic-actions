@@ -65,7 +65,7 @@ class DSLSpec extends PlaySpecification with Results {
       val step = leftFuture ?| (s => BadRequest(s))
       await(step.run) must beLeft
 
-      val result = step.run.map(_.swap.right.getOrElse(NotFound))
+      val result = step.run.map(_.swap.getOrElse(NotFound))
       status(result) mustEqual 400
 
       contentAsString(result) must contain("foo")
@@ -87,7 +87,7 @@ class DSLSpec extends PlaySpecification with Results {
       val step = left ?| (s => BadRequest(s))
       await(step.run) must beLeft
 
-      val result:Future[Result] = step.run.map(_.swap.right.getOrElse(NotFound))
+      val result:Future[Result] = step.run.map(_.swap.getOrElse(NotFound))
       status(result) mustEqual 400
 
       contentAsString(result) must contain ("foo")
@@ -101,7 +101,7 @@ class DSLSpec extends PlaySpecification with Results {
       val step = jsError ?| (e => BadRequest(JsError.toJson(e)))
       await(step.run) must beLeft
 
-      val result = step.run.map(_.swap.right.getOrElse(NotFound))
+      val result = step.run.map(_.swap.getOrElse(NotFound))
       status(result) mustEqual 400
 
       contentAsString(result) must contain(JsError.toJson(jsError).toString())
@@ -116,7 +116,7 @@ class DSLSpec extends PlaySpecification with Results {
       val step = erroneousForm ?| (f => BadRequest(f.errorsAsJson))
       await(step.run) must beLeft
 
-      val result = step.run.map(_.swap.right.getOrElse(NotFound))
+      val result = step.run.map(_.swap.getOrElse(NotFound))
       status(result) mustEqual 400
 
       contentAsString(result) must contain(erroneousForm.errorsAsJson.toString())
@@ -140,7 +140,7 @@ class DSLSpec extends PlaySpecification with Results {
       val step = failure ?| (e => BadRequest(e.getMessage))
       await(step.run) must beLeft
 
-      val result: Future[Result] = step.run.map(_.swap.right.getOrElse(NotFound))
+      val result: Future[Result] = step.run.map(_.swap.getOrElse(NotFound))
       status(result) mustEqual 400
 
       contentAsString(result) must contain("foo")
