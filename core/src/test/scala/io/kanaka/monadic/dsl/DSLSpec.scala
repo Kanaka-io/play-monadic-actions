@@ -121,17 +121,12 @@ class DSLSpec extends PlaySpecification with Results {
 
       contentAsString(result) must contain(erroneousForm.errorsAsJson.toString())
     }
-
+    
     "properly promote Boolean to Step[A]" in {
       await((true ?| NotFound).run) mustEqual Right(())
       await((false ?| NotFound).run) mustEqual Left(NotFound)
     }
-
-    "properly promote FutureBoolean[Boolean] to Step[Unit]" in {
-      await((Future(false) ?| NotFound).run) mustEqual Left(NotFound)
-      await((Future(true) ?| NotFound).run) mustEqual Right(())
-    }
-
+    
     "properly promote Try[A] to Step[A]" in {
       val success = Success(42)
       await((success ?| NotFound).run) mustEqual Right(42)

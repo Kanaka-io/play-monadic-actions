@@ -9,5 +9,3 @@
 [Richard Searle](https://github.com/searler)
 
 [Andrew Adams](https://github.com/adamsar)
-
-[lantz moore](https://github.com/mizerlou)
