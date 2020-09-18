@@ -144,9 +144,9 @@ The DSL supports the following conversions :
 
 Using sbt :
 
-Current version is 2.2.0
+Current version is 2.3.0
 ~~~scala
-libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "2.2.0"
+libraryDependencies += "io.kanaka" %% "play-monadic-actions" % "2.3.0"
 ~~~
 
 There are also contrib modules for interoperability with scalaz and cats : 
@@ -162,15 +162,16 @@ These instances and conversions are made available by importing `io.kanaka.monad
  
 ## Compatibility
 
-- Version `2.2.0` is compatible with Play! `2.7.x`
-- Version `2.1.0` is compatible with Play! `2.6.x`
-- Version `2.0.0` is compatible with Play! `2.5.x`
-- Version `1.1.0` is compatible with Play! `2.4.x`
-- Version `1.0.1` is compatible with Play! `2.3.x`
+- Version `2.3.0` is compatible with Play! `2.7.x`, published for Scala 2.12, 2.13
+- Version `2.2.0` is compatible with Play! `2.7.x`, published for Scala 2.13
+- Version `2.1.0` is compatible with Play! `2.6.x`, published for Scala 2.11, 2.12, 2.13
+- Version `2.0.0` is compatible with Play! `2.5.x`, published for Scala 2.11
+- Version `1.1.0` is compatible with Play! `2.4.x`, published for Scala 2.11
+- Version `1.0.1` is compatible with Play! `2.3.x`, published for Scala 2.11
 
 From version `2.0.0` up, dependencies toward play and cats are defined as `provided`, meaning that you can use the DSL along with any version of these projects you see fit. The sample projects under `samples/` demonstrate this capability.
 
-From version `2.1.0` up, the modules are published for scala `2.11` and `2.12`. Previous versions are only published for scala `2.11`. 
+Scala 2.11 version was removed in version 2.3.0.
 
 ## Contributors
 
