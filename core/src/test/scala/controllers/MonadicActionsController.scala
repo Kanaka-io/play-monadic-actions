@@ -35,7 +35,7 @@ class MonadicActionsController(messages: Messages) extends InjectedController {
 
   def twoFields = Action.async { implicit request =>
     for {
-      (id , "foo") <- twoFieldForm.bindFromRequest ?| (formWithErrors => BadRequest(formWithErrors.errorsAsJson(messages))) if false
+      (id , "foo") <- twoFieldForm.bindFromRequest() ?| (formWithErrors => BadRequest(formWithErrors.errorsAsJson(messages))) if false
     } yield { Ok("") }
   }
 }
