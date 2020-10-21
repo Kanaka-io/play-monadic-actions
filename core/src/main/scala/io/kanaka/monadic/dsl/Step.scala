@@ -24,10 +24,13 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 final case class Step[+A](run: Future[Either[Result, A]]) {
 
-  def map[B](f: A => B)(implicit ec: ExecutionContext) =
-    copy(run = run.map(_.map(f)))
+  def map[B](f: A => B)(implicit ec: ExecutionContext): Step[B] =
+    copy(run = run.map( _ match {
+      case Left(err) => Left(err)
+      case r @ Right(a) => r.copy(f(a))
+    }))
 
-  def flatMap[B](f: A => Step[B])(implicit ec: ExecutionContext) =
+  def flatMap[B](f: A => Step[B])(implicit ec: ExecutionContext): Step[B] =
     copy(run = run.flatMap(_.fold(err =>
                   Future.successful(Left[Result, B](err)), succ =>
                   f(succ).run)))

@@ -4,6 +4,7 @@ inThisBuild(List(
   description := "Mini DSL to allow the writing of Play! actions using for-comprehensions",
   licenses  := List(("Apache2", url("http://www.apache.org/licenses/LICENSE-2.0.txt"))),
   scalaVersion := "2.13.3",
+  crossScalaVersions := Seq("2.13.3", "2.12.12", "2.11.12"),
   scalacOptions ++= Seq(
     "-unchecked",
     "-deprecation",
@@ -21,7 +22,6 @@ inThisBuild(List(
   )
 ))
 
-crossScalaVersions := Seq("2.11.12", "2.12.12", "2.13.3")
 
 
 val commonSettings = Seq (
