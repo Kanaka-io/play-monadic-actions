@@ -1,22 +1,27 @@
-scalaVersion in ThisBuild := "2.13.0"
+inThisBuild(List(
+  organization := "io.kanaka",
+  homepage  := Some(url("https://github.com/Kanaka-io/play-monadic-actions")),
+  description := "Mini DSL to allow the writing of Play! actions using for-comprehensions",
+  licenses  := List(("Apache2", url("http://www.apache.org/licenses/LICENSE-2.0.txt"))),
+  scalaVersion := "2.13.3",
+  scalacOptions ++= Seq(
+    "-unchecked",
+    "-deprecation",
+    "-feature",
+    "-encoding", "utf8",
+    "-Xfatal-warnings"
+  ),
+  developers := List(
+    Developer(
+      "vil1",
+      "Valentin Kasas",
+      "valentin.kasas@gmail.com",
+      url("https://github.com/vil1")
+    )
+  )
+))
 
-organization in ThisBuild := "io.kanaka"
-
-description := "Mini DSL to allow the writing of Play! actions using for-comprehensions"
-
-licenses in ThisBuild += ("Apache2", url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
-
-homepage in ThisBuild := Some(url("https://github.com/Kanaka-io/play-monadic-actions"))
-
-scalacOptions in ThisBuild ++= Seq(
-  "-unchecked",
-  "-deprecation",
-  "-feature",
-  "-encoding", "utf8",
-  "-Xfatal-warnings"
-)
-
-crossScalaVersions := Seq("2.11.11", "2.12.8", "2.13.0")
+crossScalaVersions := Seq("2.11.12", "2.12.12", "2.13.3")
 
 
 val commonSettings = Seq (
@@ -59,29 +64,5 @@ lazy val cats = (project in file("cats"))
   .dependsOn(core % "compile->compile;test->test")
 
 
-
-publishMavenStyle in ThisBuild := true
-
-pomExtra in ThisBuild := <scm>
-  <url>git@github.com:Kanaka-io/play-monadic-actions.git</url>
-  <connection>scm:git:git@github.com:Kanaka-io/play-monadic-actions.git</connection>
-</scm>
-  <developers>
-    <developer>
-      <id>vkasas</id>
-      <name>Valentin Kasas</name>
-      <url>https://twitter.com/ValentinKasas</url>
-    </developer>
-  </developers>
-
 publishArtifact in Test := false
 
-publishTo in ThisBuild := {
-  val nexus = "https://oss.sonatype.org/"
-  if (isSnapshot.value)
-    Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-}
-
-releasePublishArtifactsAction := com.jsuereth.sbtpgp.PgpKeys.publishSigned.value
