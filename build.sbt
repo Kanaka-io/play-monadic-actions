@@ -2,7 +2,7 @@ inThisBuild(List(
   organization := "io.kanaka",
   homepage  := Some(url("https://github.com/Kanaka-io/play-monadic-actions")),
   description := "Mini DSL to allow the writing of Play! actions using for-comprehensions",
-  licenses  := List("Apache2", url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
+  licenses  := List(("Apache2", url("http://www.apache.org/licenses/LICENSE-2.0.txt"))),
   scalaVersion := "2.13.3",
   scalacOptions ++= Seq(
     "-unchecked",
