@@ -2,7 +2,7 @@ Play monadic actions
 ====================
 
 [![Build Status](https://travis-ci.org/Kanaka-io/play-monadic-actions.svg?branch=master)](https://travis-ci.org/Kanaka-io/play-monadic-actions) [![Gitter chat](https://badges.gitter.im/Kanaka-io/play-monadic-actions.png)](https://gitter.im/Kanaka-io/play-monadic-actions "Gitter chat") [![Coverage Status](https://coveralls.io/repos/github/Kanaka-io/play-monadic-actions/badge.svg?branch=master)](https://coveralls.io/github/Kanaka-io/play-monadic-actions?branch=master) 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.kanaka/play-monadic-actions_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.kanaka/play-monadic-actions_2.11)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.kanaka/play-monadic-actions_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.kanaka/play-monadic-actions_2.13)
 
 This little play module provides some syntactic sugar that allows boilerplate-free Actions using for-comprehensions.
 
@@ -141,6 +141,8 @@ The DSL supports the following conversions :
 
 
 ## Installation
+
+As of version `2.2.1`, all modules are published for Scala versions `2.11` up to `2.13`.
 
 Using sbt :
 
