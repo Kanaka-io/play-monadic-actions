@@ -24,7 +24,7 @@ jobs:
   release:
     needs: [compileAndTest]
     if: 
-      (github.ref == 'refs/heads/master' && type = push) || startsWith(github.ref, 'refs/tags/'))
+      (github.ref == 'refs/heads/master') || startsWith(github.ref, 'refs/tags/'))
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
