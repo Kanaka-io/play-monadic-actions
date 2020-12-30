@@ -19,4 +19,4 @@ jobs:
       with:
         java-version: 11
     - name: Run tests
-      run: sbt test
+      run: sbt +test
